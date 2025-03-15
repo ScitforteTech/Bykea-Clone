@@ -1,0 +1,2 @@
+D:/Vroom - Copy/VroomRideMobileApp/android/app/.cxx/Debug/5g1q5al1/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/Vroom - Copy/VroomRideMobileApp/android/app/.cxx/Debug/5g1q5al1/armeabi-v7a/CMakeFiles/rebuild_cache.dir
