@@ -54,10 +54,10 @@ class ProfileDetailsScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: CircleAvatar(
-                              // child: Image.asset("name"),
                               radius: CustomSize().customWidth(context) / 12,
-                              // child: Image.asset("name"),
-                              child: const Icon((Icons.person)),
+                              backgroundImage: const AssetImage(
+                                'assets/images/profile_pic.jpeg',
+                              ),
                             ),
                           ),
                           InkWell(

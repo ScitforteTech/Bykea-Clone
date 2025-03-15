@@ -79,7 +79,7 @@ class _ReferPageState extends State<ReferPage> {
                       'assets/images/logo1.png',
                       height: 80,
                       width: 80,
-                      color: const Color(0xFFD4AF37),
+                      color: Colors.white,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -172,7 +172,7 @@ class _ReferPageState extends State<ReferPage> {
                             },
                             icon: const Icon(
                               Icons.copy,
-                              color: Color(0xFFD4AF37),
+                              color: Color(0xFF323d4f),
                             ),
                           ),
                         ],
@@ -334,10 +334,10 @@ class _ReferPageState extends State<ReferPage> {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD4AF37).withOpacity(0.1),
+                      color: const Color(0xFF323d4f).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFFD4AF37).withOpacity(0.3),
+                        color: const Color(0xFF323d4f).withOpacity(0.3),
                       ),
                     ),
                     child: Padding(
@@ -349,7 +349,7 @@ class _ReferPageState extends State<ReferPage> {
                             children: [
                               const Icon(
                                 Icons.info_outline,
-                                color: Color(0xFFD4AF37),
+                                color: Color(0xFF323d4f),
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
@@ -597,7 +597,7 @@ class _ReferPageState extends State<ReferPage> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: isCompleted
-                        ? const Color(0xFFD4AF37)
+                        ? const Color(0xFF323d4f)
                         : Colors.grey[400],
                   ),
                 ),
@@ -620,7 +620,7 @@ class _ReferPageState extends State<ReferPage> {
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFFD4AF37),
+            color: const Color(0xFF323d4f),
           ),
         ),
         Text(

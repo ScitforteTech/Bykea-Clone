@@ -2,24 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:vroom_ride_app/Views/Rider/earnings.dart';
-import 'package:vroom_ride_app/Views/Rider/edit_profile_page.dart'; // Import the Edit Profile page
-import 'package:vroom_ride_app/Views/Rider/faqs_page.dart'; // Import the FAQs page
-import 'package:vroom_ride_app/Views/Rider/refer_page.dart'; // Import the Refer page
+import 'package:vroom_ride_app/Views/Rider/edit_profile_page.dart';
+import 'package:vroom_ride_app/Views/Rider/faqs_page.dart';
+import 'package:vroom_ride_app/Views/Rider/refer_page.dart';
 import 'package:vroom_ride_app/Views/Rider/ride_history.dart';
-import 'package:vroom_ride_app/Views/Rider/support_page.dart'; // Import the support page
-import 'package:vroom_ride_app/Views/Rider/privacy_policy.dart'; // Import the privacy policy page
+import 'package:vroom_ride_app/Views/Rider/support_page.dart';
+import 'package:vroom_ride_app/Views/Rider/privacy_policy.dart';
 import 'package:vroom_ride_app/Views/Rider/ride_requests.dart';
 import 'package:vroom_ride_app/Views/Rider/wallet.dart';
-import 'package:vroom_ride_app/Views/Rider/notification_page.dart'; // Import the notification page
+import 'package:vroom_ride_app/Views/Rider/notification_page.dart';
+import 'package:vroom_ride_app/Views/Rider/auth_choice_screen.dart';
 
-class RiderDashboardScreen extends StatefulWidget {
-  const RiderDashboardScreen({super.key});
+class RiderDashboard extends StatefulWidget {
+  const RiderDashboard({super.key});
 
   @override
-  State<RiderDashboardScreen> createState() => _RiderDashboardScreenState();
+  State<RiderDashboard> createState() => _RiderDashboardState();
 }
 
-class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
+class _RiderDashboardState extends State<RiderDashboard> {
   late GoogleMapController mapController;
   final LatLng _center = const LatLng(24.8607, 67.0011); // Karachi coordinates
   String selectedVehicle = 'Moto';
@@ -480,8 +481,8 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
                   children: [
                     CircleAvatar(
                       radius: 25,
-                      backgroundImage: const NetworkImage(
-                        'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=150&auto=format&fit=crop',
+                      backgroundImage: const AssetImage(
+                        'assets/images/profile_pic.jpeg',
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -686,6 +687,29 @@ class _RiderDashboardScreenState extends State<RiderDashboardScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => const SupportPage()),
+                  );
+                },
+              ),
+              const Divider(),
+              // Logout
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: Text(
+                  'Logout',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Logout and navigate to auth choice screen
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AuthChoiceScreen(),
+                    ),
+                    (route) => false,
                   );
                 },
               ),

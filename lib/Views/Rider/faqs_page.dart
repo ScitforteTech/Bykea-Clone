@@ -50,7 +50,7 @@ class _FAQsPageState extends State<FAQsPage> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF323d4f).withOpacity(0.1),
+                  color: const Color(0xFFD4AF37),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -59,7 +59,7 @@ class _FAQsPageState extends State<FAQsPage> {
                       borderRadius: BorderRadius.circular(8),
                       child: ColorFiltered(
                         colorFilter: const ColorFilter.mode(
-                          Color(0xFF323d4f),
+                          Colors.white,
                           BlendMode.srcIn,
                         ),
                         child: Image.asset(
@@ -76,14 +76,14 @@ class _FAQsPageState extends State<FAQsPage> {
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF323d4f),
+                        color: Colors.white,
                       ),
                     ),
                     Text(
                       "Find answers to common questions",
                       style: GoogleFonts.poppins(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: Colors.white.withOpacity(0.8),
                       ),
                     ),
                   ],
@@ -307,7 +307,7 @@ class _FAQsPageState extends State<FAQsPage> {
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF323d4f),
+                            backgroundColor: const Color(0xFFD4AF37),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -352,7 +352,7 @@ class _FAQsPageState extends State<FAQsPage> {
               children: [
                 Icon(
                   _getCategoryIcon(category),
-                  color: const Color(0xFFD4AF37),
+                  color: Colors.white,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -392,6 +392,7 @@ class _FAQsPageState extends State<FAQsPage> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
+                color: Colors.white,
                 child: ExpansionTile(
                   initiallyExpanded: isExpanded,
                   onExpansionChanged: (expanded) {
@@ -403,6 +404,8 @@ class _FAQsPageState extends State<FAQsPage> {
                       }
                     });
                   },
+                  collapsedBackgroundColor: Colors.white,
+                  backgroundColor: Colors.grey[50],
                   title: Text(
                     faqs[index]['question'] ?? '',
                     style: GoogleFonts.poppins(
@@ -413,14 +416,14 @@ class _FAQsPageState extends State<FAQsPage> {
                   ),
                   trailing: CircleAvatar(
                     backgroundColor: isExpanded
-                        ? const Color(0xFFD4AF37).withOpacity(0.2)
+                        ? const Color(0xFF323d4f).withOpacity(0.2)
                         : Colors.grey.withOpacity(0.1),
                     radius: 14,
                     child: Icon(
                       isExpanded ? Icons.remove : Icons.add,
                       size: 16,
                       color: isExpanded
-                          ? const Color(0xFFD4AF37)
+                          ? const Color(0xFF323d4f)
                           : const Color(0xFF323d4f),
                     ),
                   ),

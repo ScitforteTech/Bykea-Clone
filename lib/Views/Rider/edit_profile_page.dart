@@ -288,8 +288,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             backgroundColor: Colors.grey[300],
                             backgroundImage: _profileImage != null
                                 ? FileImage(_profileImage!)
-                                : const NetworkImage(
-                                    'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=150&auto=format&fit=crop',
+                                : const AssetImage(
+                                    'assets/images/profile_pic.jpeg',
                                   ) as ImageProvider,
                           ),
                           Positioned(
@@ -429,7 +429,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       label: "Home Address",
                       hint: "Enter your home address",
                       icon: Icons.home,
-                      maxLines: 2,
+                      maxLines: 1,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Please enter your home address";
@@ -444,7 +444,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       label: "Work Address (Optional)",
                       hint: "Enter your work address",
                       icon: Icons.work,
-                      maxLines: 2,
+                      maxLines: 1,
                     ),
 
                     const SizedBox(height: 24),
@@ -661,9 +661,19 @@ class _EditProfilePageState extends State<EditProfilePage> {
               hintStyle: GoogleFonts.poppins(
                 color: Colors.grey[400],
               ),
-              prefixIcon: Icon(
-                icon,
-                color: const Color(0xFF323d4f),
+              prefixIcon: Container(
+                width: 50,
+                height: 50,
+                alignment: Alignment.center,
+                child: Icon(
+                  icon,
+                  color: const Color(0xFF323d4f),
+                  size: 22,
+                ),
+              ),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 50,
+                minHeight: 50,
               ),
               filled: true,
               fillColor: Colors.white,
@@ -694,11 +704,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 16,
+                vertical: 14,
               ),
             ),
             style: GoogleFonts.poppins(
               color: const Color(0xFF323d4f),
+              fontSize: 14,
             ),
             keyboardType: keyboardType,
             readOnly: readOnly,
@@ -743,9 +754,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
             child: DropdownButtonFormField<String>(
               value: value,
               decoration: InputDecoration(
-                prefixIcon: Icon(
-                  icon,
-                  color: const Color(0xFF323d4f),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Icon(
+                    icon,
+                    color: const Color(0xFF323d4f),
+                    size: 22,
+                  ),
+                ),
+                prefixIconConstraints: const BoxConstraints(
+                  minWidth: 50,
+                  minHeight: 50,
                 ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
@@ -755,6 +774,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               style: GoogleFonts.poppins(
                 color: const Color(0xFF323d4f),
+                fontSize: 14,
               ),
               icon: const Icon(
                 Icons.arrow_drop_down,
@@ -808,15 +828,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    icon,
-                    color: const Color(0xFF323d4f),
+                  Container(
+                    width: 50,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      icon,
+                      color: const Color(0xFF323d4f),
+                      size: 22,
+                    ),
                   ),
-                  const SizedBox(width: 16),
                   Text(
                     value,
                     style: GoogleFonts.poppins(
                       color: const Color(0xFF323d4f),
+                      fontSize: 14,
                     ),
                   ),
                   const Spacer(),

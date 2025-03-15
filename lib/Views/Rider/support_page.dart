@@ -8,18 +8,22 @@ class SupportPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: Text(
-          "Support",
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w300,
-            fontSize: MediaQuery.of(context).size.width / 20,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          title: Text(
+            "Support",
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w300,
+              fontSize: MediaQuery.of(context).size.width / 20,
+            ),
           ),
-        ),
-        backgroundColor: const Color(0xFF323d4f),
-        iconTheme: const IconThemeData(
-          color: Colors.white,
+          backgroundColor: const Color(0xFF323d4f),
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+          ),
+          elevation: 0,
         ),
       ),
       body: SingleChildScrollView(
@@ -36,12 +40,30 @@ class SupportPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Support Center Pill
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Text(
+                      "Support Center",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF323d4f),
+                      ),
+                    ),
+                  ),
                   Text(
                     "How can we help you?",
                     style: GoogleFonts.poppins(
                       fontSize: 22,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: const Color(0xFFD4AF37),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -54,46 +76,58 @@ class SupportPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Search Bar
-                  Container(
-                    height: 50,
-                    decoration: BoxDecoration(
+                ],
+              ),
+            ),
+
+            // Search Bar - Positioned on the boundary
+            Transform.translate(
+              offset: const Offset(0, -25),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                    border: Border.all(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
+                      width: 1,
                     ),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Search for help",
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.grey[400],
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Colors.grey[400],
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 15,
-                        ),
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: "Search for help",
+                      hintStyle: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey[400],
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey[400],
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 15,
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
 
             // Quick Help Section
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(
+                  top: 5, left: 16, right: 16, bottom: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -221,14 +255,14 @@ class SupportPage extends StatelessWidget {
                           "Call Support",
                           "+92 300 1234567",
                           Icons.phone,
-                          const Color(0xFF323d4f),
+                          const Color(0xFFD4AF37),
                         ),
                         const Divider(height: 24),
                         _buildContactOption(
                           "Email Us",
                           "support@vroomride.com",
                           Icons.email_outlined,
-                          const Color(0xFF323d4f),
+                          const Color(0xFFD4AF37),
                         ),
                       ],
                     ),

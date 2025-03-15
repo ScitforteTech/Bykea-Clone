@@ -32,7 +32,7 @@ class PrivacyPolicyPage extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF323d4f).withOpacity(0.1),
+                  color: const Color(0xFFD4AF37),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -41,13 +41,13 @@ class PrivacyPolicyPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                       child: ColorFiltered(
                         colorFilter: const ColorFilter.mode(
-                          Color(0xFF323d4f),
+                          Colors.white,
                           BlendMode.srcIn,
                         ),
                         child: Image.asset(
                           'assets/images/logo1.png',
-                          height: 60,
-                          width: 60,
+                          height: 80,
+                          width: 80,
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -58,14 +58,14 @@ class PrivacyPolicyPage extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF323d4f),
+                        color: Colors.white,
                       ),
                     ),
                     Text(
                       "Last Updated: June 2023",
                       style: GoogleFonts.poppins(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: Colors.white.withOpacity(0.8),
                       ),
                     ),
                   ],

@@ -61,10 +61,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CircleAvatar(
-                      // child: Image.asset("name"),
                       radius: CustomSize().customWidth(context) / 12,
-                      // child: Image.asset("name"),
-                      child: const Icon((Icons.person)),
+                      backgroundImage: const AssetImage(
+                        'assets/images/profile_pic.jpeg',
+                      ),
                     ),
                     SizedBox(height: CustomSize().customHeight(context) / 70),
                     Text(
