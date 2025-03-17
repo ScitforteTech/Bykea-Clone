@@ -431,7 +431,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add navigation logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               ListTile(
                 leading: const Icon(Icons.history, color: Color(0xFFD4AF37)),
                 title: Text(
@@ -446,7 +446,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add navigation logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               ListTile(
                 leading: const Icon(Icons.share, color: Color(0xFFD4AF37)),
                 title: Text(
@@ -461,7 +461,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add navigation logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               ListTile(
                 leading: const Icon(Icons.account_balance_wallet,
                     color: Color(0xFFD4AF37)),
@@ -477,7 +477,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add navigation logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               ListTile(
                 leading:
                     const Icon(Icons.notifications, color: Color(0xFFD4AF37)),
@@ -493,7 +493,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add navigation logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               ListTile(
                 leading: const Icon(Icons.help, color: Color(0xFFD4AF37)),
                 title: Text(
@@ -508,7 +508,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add navigation logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               ListTile(
                 leading:
                     const Icon(Icons.privacy_tip, color: Color(0xFFD4AF37)),
@@ -524,7 +524,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add navigation logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               ListTile(
                 leading:
                     const Icon(Icons.help_outline, color: Color(0xFFD4AF37)),
@@ -540,7 +540,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add navigation logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: Text(
@@ -555,7 +555,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                   // Add logout logic
                 },
               ),
-              const Divider(),
+              const Divider(thickness: 0.5, color: Colors.grey),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -611,16 +611,16 @@ class _DriverDashboardState extends State<DriverDashboard> {
                       InkWell(
                         onTap: () => _scaffoldKey.currentState?.openDrawer(),
                         borderRadius: BorderRadius.circular(30),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryBlue.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.menu,
-                            color: AppTheme.primaryBlue,
-                            size: 24,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          radius: 25,
+                          child: Builder(
+                            builder: (context) => IconButton(
+                              icon: const Icon(Icons.menu, color: Colors.black),
+                              onPressed: () {
+                                Scaffold.of(context).openDrawer();
+                              },
+                            ),
                           ),
                         ),
                       ),
