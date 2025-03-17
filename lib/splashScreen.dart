@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vroom_ride_app/Views/Rider/auth_choice_screen.dart';
+import 'package:vroom_ride_app/Views/Driver/auth_choice_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

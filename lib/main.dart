@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:vroom_ride_app/Views/Rider/rider_dashboard.dart';
+import 'package:vroom_ride_app/Views/Driver/driver_dashboard.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:vroom_ride_app/Resources/theme.dart';
 import 'package:vroom_ride_app/splashScreen.dart';
 
 void main() async {
@@ -22,23 +22,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Vroom Ride',
+      title: 'Vroom Driver',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF323d4f)),
-        useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(
-          Theme.of(context).textTheme,
-        ),
-        primaryColor: const Color(0xFF323d4f),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF323d4f),
-            foregroundColor: Colors.white,
-          ),
-        ),
-      ),
-      home: const SplashScreen(), // Start with splash screen
+      theme: AppTheme.theme(context),
+      home: const SplashScreen(), // Show splash screen first
     );
   }
 }

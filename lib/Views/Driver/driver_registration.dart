@@ -1,0 +1,1003 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:vroom_ride_app/Resources/theme.dart';
+import 'package:vroom_ride_app/Views/Driver/driver_dashboard.dart';
+
+class DriverRegistrationScreen extends StatefulWidget {
+  const DriverRegistrationScreen({super.key});
+
+  @override
+  State<DriverRegistrationScreen> createState() =>
+      _DriverRegistrationScreenState();
+}
+
+class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
+  final _formKey = GlobalKey<FormState>();
+  File? _profileImage;
+  File? _licenseImage;
+  File? _vehicleImage;
+  String _selectedVehicleType = 'Bike';
+  bool _isLoading = false;
+  int _currentStep = 0;
+  final int _totalSteps = 3;
+
+  final List<String> _vehicleTypes = ['Bike', 'Car', 'Auto Rickshaw'];
+
+  // Form controllers
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _licenseController = TextEditingController();
+  final _vehicleNumberController = TextEditingController();
+  final _vehicleModelController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  // Add new controllers
+  final _cnicController = TextEditingController();
+  final _vehicleMakeController = TextEditingController();
+  final _vehicleColorController = TextEditingController();
+
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  Future<void> _pickImage(ImageSource source, String type) async {
+    try {
+      final image = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+
+      setState(() {
+        switch (type) {
+          case 'profile':
+            _profileImage = File(image.path);
+            break;
+          case 'license':
+            _licenseImage = File(image.path);
+            break;
+          case 'vehicle':
+            _vehicleImage = File(image.path);
+            break;
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to pick image: $e',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showImageSourceDialog(String type, String title) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryBlue,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildImageSourceOption(
+                  icon: Icons.photo_library,
+                  label: "Gallery",
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.gallery, type);
+                  },
+                ),
+                _buildImageSourceOption(
+                  icon: Icons.camera_alt,
+                  label: "Camera",
+                  onTap: () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera, type);
+                  },
+                ),
+                if ((type == 'profile' && _profileImage != null) ||
+                    (type == 'license' && _licenseImage != null) ||
+                    (type == 'vehicle' && _vehicleImage != null))
+                  _buildImageSourceOption(
+                    icon: Icons.delete,
+                    label: "Remove",
+                    onTap: () {
+                      Navigator.pop(context);
+                      setState(() {
+                        switch (type) {
+                          case 'profile':
+                            _profileImage = null;
+                            break;
+                          case 'license':
+                            _licenseImage = null;
+                            break;
+                          case 'vehicle':
+                            _vehicleImage = null;
+                            break;
+                        }
+                      });
+                    },
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSourceOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: AppTheme.primaryBlue.withOpacity(0.1),
+            child: Icon(
+              icon,
+              size: 30,
+              color: AppTheme.primaryBlue,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: AppTheme.primaryBlue,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Step> get registrationSteps => [
+        Step(
+          title: Text(
+            'Personal Info',
+            style: GoogleFonts.poppins(color: AppTheme.primaryBlue),
+          ),
+          content: _buildPersonalInfoStep(),
+          isActive: _currentStep >= 0,
+        ),
+        Step(
+          title: Text(
+            'Vehicle Details',
+            style: GoogleFonts.poppins(color: AppTheme.primaryBlue),
+          ),
+          content: _buildVehicleDetailsStep(),
+          isActive: _currentStep >= 1,
+        ),
+        Step(
+          title: Text(
+            'Documents',
+            style: GoogleFonts.poppins(color: AppTheme.primaryBlue),
+          ),
+          content: _buildDocumentsStep(),
+          isActive: _currentStep >= 2,
+        ),
+      ];
+
+  Widget _buildPersonalInfoStep() {
+    return Column(
+      children: [
+        // Profile Image
+        Center(
+          child: Stack(
+            children: [
+              CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.grey[200],
+                backgroundImage:
+                    _profileImage != null ? FileImage(_profileImage!) : null,
+                child: _profileImage == null
+                    ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                    : null,
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: CircleAvatar(
+                  backgroundColor: AppTheme.primaryBlue,
+                  radius: 18,
+                  child: IconButton(
+                    icon: const Icon(Icons.camera_alt, size: 18),
+                    color: Colors.white,
+                    onPressed: () => _showImageSourceDialog(
+                        'profile', 'Select Profile Photo'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // Personal Information Fields
+        _buildSection(
+          'Personal Information',
+          Column(
+            children: [
+              _buildTextField(
+                label: 'Full Name',
+                icon: Icons.person_outline,
+                controller: _nameController,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Please enter your name' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                label: 'CNIC',
+                icon: Icons.credit_card,
+                controller: _cnicController,
+                keyboardType: TextInputType.number,
+                maxLength: 13,
+                validator: (value) {
+                  if (value?.isEmpty ?? true) {
+                    return 'Please enter your CNIC';
+                  }
+                  if (value!.length != 13) {
+                    return 'CNIC must be 13 digits';
+                  }
+                  if (!RegExp(r'^[0-9]{13}$').hasMatch(value)) {
+                    return 'CNIC can only contain numbers';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                label: 'Email',
+                icon: Icons.email_outlined,
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Please enter your email' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                label: 'Phone Number',
+                icon: Icons.phone_outlined,
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                validator: (value) => value?.isEmpty ?? true
+                    ? 'Please enter your phone number'
+                    : null,
+              ),
+            ],
+          ),
+        ),
+
+        // Password Section
+        _buildSection(
+          'Security',
+          Column(
+            children: [
+              _buildTextField(
+                label: 'Password',
+                icon: Icons.lock_outline,
+                controller: _passwordController,
+                isPassword: true,
+                obscureText: _obscurePassword,
+                onVisibilityToggle: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
+                validator: (value) =>
+                    value?.isEmpty ?? true ? 'Please enter a password' : null,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                label: 'Confirm Password',
+                icon: Icons.lock_outline,
+                controller: _confirmPasswordController,
+                isPassword: true,
+                obscureText: _obscureConfirmPassword,
+                onVisibilityToggle: () => setState(
+                    () => _obscureConfirmPassword = !_obscureConfirmPassword),
+                validator: (value) {
+                  if (value?.isEmpty ?? true)
+                    return 'Please confirm your password';
+                  if (value != _passwordController.text)
+                    return 'Passwords do not match';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVehicleDetailsStep() {
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedVehicleType,
+          decoration: InputDecoration(
+            labelText: 'Vehicle Type',
+            labelStyle: GoogleFonts.poppins(),
+            prefixIcon: Icon(Icons.directions_car_outlined,
+                color: AppTheme.primaryBlue),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          items: _vehicleTypes
+              .map((type) => DropdownMenuItem(
+                    value: type,
+                    child: Text(
+                      type,
+                      style: GoogleFonts.poppins(),
+                    ),
+                  ))
+              .toList(),
+          onChanged: (value) {
+            setState(() {
+              _selectedVehicleType = value!;
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          label: 'Vehicle Make',
+          icon: Icons.business,
+          controller: _vehicleMakeController,
+          validator: (value) =>
+              value?.isEmpty ?? true ? 'Please enter vehicle make' : null,
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          label: 'Vehicle Model',
+          icon: Icons.directions_car_outlined,
+          controller: _vehicleModelController,
+          validator: (value) =>
+              value?.isEmpty ?? true ? 'Please enter vehicle model' : null,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          label: 'Vehicle Color',
+          icon: Icons.color_lens_outlined,
+          controller: _vehicleColorController,
+          validator: (value) =>
+              value?.isEmpty ?? true ? 'Please enter vehicle color' : null,
+          textCapitalization: TextCapitalization.words,
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          label: 'Vehicle Number',
+          icon: Icons.numbers_outlined,
+          controller: _vehicleNumberController,
+          validator: (value) =>
+              value?.isEmpty ?? true ? 'Please enter vehicle number' : null,
+          textCapitalization: TextCapitalization.characters,
+        ),
+        const SizedBox(height: 16),
+        _buildImagePicker(
+          'Vehicle Photo',
+          _vehicleImage,
+          () => _showImageSourceDialog('vehicle', 'Vehicle Photo'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDocumentsStep() {
+    return Column(
+      children: [
+        _buildTextField(
+          label: 'License Number',
+          icon: Icons.badge_outlined,
+          controller: _licenseController,
+          validator: (value) =>
+              value?.isEmpty ?? true ? 'Please enter license number' : null,
+        ),
+        const SizedBox(height: 16),
+        _buildImageUploadSection(
+          'Upload License Photo',
+          _licenseImage,
+          () => _showImageSourceDialog('license', 'Select License Photo'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageUploadSection(
+      String title, File? image, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 120,
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: image != null
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  image,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.upload_file,
+                      color: AppTheme.primaryBlue.withOpacity(0.5), size: 40),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      color: AppTheme.primaryBlue.withOpacity(0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  void _registerDriver() {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Simulate API call
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Navigate to dashboard
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DriverDashboard(),
+          ),
+          (route) => false,
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: Text(
+          'Driver Registration',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: AppTheme.primaryBlue,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                // Profile Photo Section
+                Center(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundColor: Colors.grey[200],
+                        backgroundImage: _profileImage != null
+                            ? FileImage(_profileImage!)
+                            : null,
+                        child: _profileImage == null
+                            ? Icon(Icons.person,
+                                size: 60, color: Colors.grey[400])
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryBlue,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.camera_alt, size: 24),
+                            color: Colors.white,
+                            onPressed: () => _showImageSourceDialog(
+                                'profile', 'Profile Photo'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Personal Information Section
+                _buildSection(
+                  'Personal Information',
+                  Column(
+                    children: [
+                      _buildTextField(
+                        label: 'Full Name',
+                        icon: Icons.person_outline,
+                        controller: _nameController,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter your name'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'CNIC',
+                        icon: Icons.credit_card,
+                        controller: _cnicController,
+                        keyboardType: TextInputType.number,
+                        maxLength: 13,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return 'Please enter your CNIC';
+                          }
+                          if (value!.length != 13) {
+                            return 'CNIC must be 13 digits';
+                          }
+                          if (!RegExp(r'^[0-9]{13}$').hasMatch(value)) {
+                            return 'CNIC can only contain numbers';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Email',
+                        icon: Icons.email_outlined,
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter your email'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Phone Number',
+                        icon: Icons.phone_outlined,
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter your phone number'
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Password Section
+                _buildSection(
+                  'Security',
+                  Column(
+                    children: [
+                      _buildTextField(
+                        label: 'Password',
+                        icon: Icons.lock_outline,
+                        controller: _passwordController,
+                        isPassword: true,
+                        obscureText: _obscurePassword,
+                        onVisibilityToggle: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter a password'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Confirm Password',
+                        icon: Icons.lock_outline,
+                        controller: _confirmPasswordController,
+                        isPassword: true,
+                        obscureText: _obscureConfirmPassword,
+                        onVisibilityToggle: () => setState(() =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword),
+                        validator: (value) {
+                          if (value?.isEmpty ?? true)
+                            return 'Please confirm your password';
+                          if (value != _passwordController.text)
+                            return 'Passwords do not match';
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Vehicle Information Section
+                _buildSection(
+                  'Vehicle Information',
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      DropdownButtonFormField<String>(
+                        value: _selectedVehicleType,
+                        decoration: InputDecoration(
+                          labelText: 'Vehicle Type',
+                          labelStyle: GoogleFonts.poppins(),
+                          prefixIcon: Icon(Icons.directions_car_outlined,
+                              color: AppTheme.primaryBlue),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        items: _vehicleTypes
+                            .map((type) => DropdownMenuItem(
+                                  value: type,
+                                  child: Text(
+                                    type,
+                                    style: GoogleFonts.poppins(),
+                                  ),
+                                ))
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedVehicleType = value!),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Vehicle Make',
+                        icon: Icons.business,
+                        controller: _vehicleMakeController,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter vehicle make'
+                            : null,
+                        textCapitalization: TextCapitalization.words,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Vehicle Model',
+                        icon: Icons.directions_car_outlined,
+                        controller: _vehicleModelController,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter vehicle model'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Vehicle Color',
+                        icon: Icons.color_lens_outlined,
+                        controller: _vehicleColorController,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter vehicle color'
+                            : null,
+                        textCapitalization: TextCapitalization.words,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        label: 'Vehicle Number',
+                        icon: Icons.numbers_outlined,
+                        controller: _vehicleNumberController,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter vehicle number'
+                            : null,
+                        textCapitalization: TextCapitalization.characters,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildImagePicker(
+                        'Vehicle Photo',
+                        _vehicleImage,
+                        () =>
+                            _showImageSourceDialog('vehicle', 'Vehicle Photo'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // License Information Section
+                _buildSection(
+                  'License Information',
+                  Column(
+                    children: [
+                      _buildTextField(
+                        label: 'License Number',
+                        icon: Icons.badge_outlined,
+                        controller: _licenseController,
+                        validator: (value) => value?.isEmpty ?? true
+                            ? 'Please enter license number'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildImageUploadSection(
+                        'Upload License Photo',
+                        _licenseImage,
+                        () =>
+                            _showImageSourceDialog('license', 'License Photo'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Register Button
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _registerDriver,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF323d4f),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.person_add,
+                            size: 24,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Register',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _licenseController.dispose();
+    _vehicleNumberController.dispose();
+    _vehicleModelController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _cnicController.dispose();
+    _vehicleMakeController.dispose();
+    _vehicleColorController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildSection(String title, Widget content) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryBlue,
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: content,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required IconData icon,
+    required TextEditingController controller,
+    bool isPassword = false,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    VoidCallback? onVisibilityToggle,
+    int? maxLength,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      maxLength: maxLength,
+      textCapitalization: textCapitalization,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.poppins(),
+        prefixIcon: Icon(icon, color: const Color(0xFF323d4f)),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility : Icons.visibility_off,
+                  color: const Color(0xFF323d4f),
+                ),
+                onPressed: onVisibilityToggle,
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFF323d4f),
+            width: 2.0,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFF323d4f),
+            width: 2.0,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFFD4AF37),
+            width: 2.0,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.red,
+          ),
+        ),
+        errorStyle: GoogleFonts.poppins(
+          color: Colors.red,
+          fontSize: 12,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        counterText: maxLength != null ? '' : null,
+      ),
+      style: GoogleFonts.poppins(),
+      validator: validator,
+    );
+  }
+
+  Widget _buildImagePicker(String title, File? image, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 150,
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: image != null
+            ? Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      image,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryBlue,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.white),
+                        onPressed: onTap,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.cloud_upload_outlined,
+                    size: 48,
+                    color: AppTheme.primaryBlue.withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: AppTheme.primaryBlue.withOpacity(0.7),
+                    ),
+                  ),
+                  Text(
+                    'Tap to upload',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}

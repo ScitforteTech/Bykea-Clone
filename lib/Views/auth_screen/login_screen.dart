@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/CustomSize.dart';
 import 'package:vroom_ride_app/Resources/customComponents.dart';
-import 'package:vroom_ride_app/Views/Rider/rider_dashboard.dart';
+import 'package:vroom_ride_app/Views/Driver/driver_dashboard.dart';
 import 'package:vroom_ride_app/Views/auth_screen/forgotPassword.dart';
 import 'package:vroom_ride_app/Views/auth_screen/signUp_screen.dart';
+import 'package:vroom_ride_app/Views/Driver/driver_registration.dart';
 import 'package:vroom_ride_app/components/customButton.dart';
 import 'package:vroom_ride_app/welcomePage.dart';
 
@@ -33,13 +34,13 @@ class _loginScreenState extends State<loginScreen> {
       // Simulate API call
       Future.delayed(const Duration(seconds: 2), () {
         // Check credentials
-        if (emailController.text == "abdullah@gmail.com" &&
-            passwordController.text == "test1234") {
+        if (emailController.text == "fahim@gmail.com" &&
+            passwordController.text == "1234") {
           // Navigate to dashboard
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (context) => const RiderDashboard(),
+              builder: (context) => const DriverDashboard(),
             ),
             (route) => false,
           );
@@ -236,57 +237,59 @@ class _loginScreenState extends State<loginScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                       elevation: 2,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(
                             color: Colors.white,
                             strokeWidth: 3,
                           )
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.login, size: 24),
-                              const SizedBox(width: 10),
-                              Text(
-                                "Login",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
+                        : Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.login,
+                                    size: 24, color: Colors.white),
+                                const SizedBox(width: 10),
+                                Text(
+                                  "Login",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                   ),
                 ),
-                SizedBox(height: CustomSize().customHeight(context) / 80),
+                SizedBox(height: CustomSize().customHeight(context) / 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      child: Text(
-                        "Don't have an account?",
-                        style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w300,
-                            fontSize: CustomSize().customWidth(context) / 20),
+                    Text(
+                      "Don't have an account? ",
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF323d4f),
+                        fontSize: CustomSize().customWidth(context) / 25,
                       ),
                     ),
-                    InkWell(
-                      onTap: () {
+                    TextButton(
+                      onPressed: () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const signUpScreen()));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const DriverRegistrationScreen(),
+                          ),
+                        );
                       },
-                      child: Container(
-                        margin: EdgeInsets.only(
-                            left: CustomSize().customWidth(context) / 40),
-                        child: Text(
-                          "Sign Up",
-                          style: GoogleFonts.poppins(
-                              color: const Color(0xFFD4AF37),
-                              fontWeight: FontWeight.w500,
-                              fontSize: CustomSize().customWidth(context) / 20),
+                      child: Text(
+                        "Sign Up",
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFFD4AF37),
+                          fontWeight: FontWeight.w600,
+                          fontSize: CustomSize().customWidth(context) / 25,
                         ),
                       ),
                     ),
