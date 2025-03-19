@@ -4,6 +4,10 @@ import 'package:vroom_ride_app/Resources/theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'driver_ride_history_screen.dart';
+import 'driver_earnings_screen.dart';
+import 'driver_wallet_screen.dart';
+import 'driver_trip_requests_screen.dart';
 
 class DriverDashboard extends StatefulWidget {
   const DriverDashboard({super.key});
@@ -428,7 +432,12 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  // Add navigation logic
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DriverTripRequestsScreen(),
+                    ),
+                  );
                 },
               ),
               const Divider(thickness: 0.5, color: Colors.grey),
@@ -443,7 +452,12 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  // Add navigation logic
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DriverRideHistoryScreen(),
+                    ),
+                  );
                 },
               ),
               const Divider(thickness: 0.5, color: Colors.grey),
@@ -474,7 +488,12 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  // Add navigation logic
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DriverWalletScreen(),
+                    ),
+                  );
                 },
               ),
               const Divider(thickness: 0.5, color: Colors.grey),
@@ -684,7 +703,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     children: [
                       _buildStatCard(
                         'Today\'s Earnings',
-                        'PKR. 1205',
+                        'Rs. 1205',
                         Icons.monetization_on_rounded,
                         AppTheme.goldAccent,
                         imagePath: 'assets/images/pkr.png',
@@ -783,13 +802,29 @@ class _DriverDashboardState extends State<DriverDashboard> {
                           'Earnings',
                           Icons.account_balance_wallet_rounded,
                           AppTheme.goldAccent,
-                          () {},
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const DriverEarningsScreen(),
+                              ),
+                            );
+                          },
                         ),
                         _buildQuickAction(
                           'History',
                           Icons.history_rounded,
                           AppTheme.primaryBlue,
-                          () {},
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const DriverRideHistoryScreen(),
+                              ),
+                            );
+                          },
                         ),
                         _buildQuickAction(
                           'Support',
