@@ -499,6 +499,38 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Define responsive dimensions
+    final isSmallScreen = screenWidth < 600;
+    final isMediumScreen = screenWidth >= 600 && screenWidth < 900;
+
+    // Responsive dimensions
+    final sectionPadding =
+        isSmallScreen ? 16.0 : (isMediumScreen ? 20.0 : 24.0);
+    final fieldSpacing = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
+    final titleFontSize = isSmallScreen ? 18.0 : (isMediumScreen ? 20.0 : 22.0);
+    final labelFontSize = isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 16.0);
+    final inputFontSize = isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 16.0);
+    final iconSize = isSmallScreen ? 20.0 : (isMediumScreen ? 24.0 : 24.0);
+    final profileImageSize =
+        isSmallScreen ? 60.0 : (isMediumScreen ? 70.0 : 80.0);
+    final cameraIconSize =
+        isSmallScreen ? 20.0 : (isMediumScreen ? 24.0 : 24.0);
+    final buttonHeight = isSmallScreen ? 48.0 : (isMediumScreen ? 56.0 : 56.0);
+    final buttonFontSize =
+        isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 16.0);
+    final imageUploadHeight =
+        isSmallScreen ? 120.0 : (isMediumScreen ? 150.0 : 150.0);
+    final imageUploadIconSize =
+        isSmallScreen ? 40.0 : (isMediumScreen ? 48.0 : 48.0);
+    final imageUploadFontSize =
+        isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 16.0);
+    final cardRadius = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 16.0);
+    final borderWidth = isSmallScreen ? 1.5 : (isMediumScreen ? 2.0 : 2.0);
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -507,6 +539,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
+            fontSize: titleFontSize,
           ),
         ),
         backgroundColor: AppTheme.primaryBlue,
@@ -519,34 +552,35 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(height: 16),
+                SizedBox(height: fieldSpacing),
                 // Profile Photo Section
                 Center(
                   child: Stack(
                     children: [
                       CircleAvatar(
-                        radius: 60,
+                        radius: profileImageSize,
                         backgroundColor: Colors.grey[200],
                         backgroundImage: _profileImage != null
                             ? FileImage(_profileImage!)
                             : null,
                         child: _profileImage == null
                             ? Icon(Icons.person,
-                                size: 60, color: Colors.grey[400])
+                                size: profileImageSize, color: Colors.grey[400])
                             : null,
                       ),
                       Positioned(
                         bottom: 0,
                         right: 0,
                         child: Container(
-                          padding: const EdgeInsets.all(4),
+                          padding: EdgeInsets.all(fieldSpacing / 4),
                           decoration: BoxDecoration(
                             color: AppTheme.primaryBlue,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(
+                                color: Colors.white, width: borderWidth),
                           ),
                           child: IconButton(
-                            icon: const Icon(Icons.camera_alt, size: 24),
+                            icon: Icon(Icons.camera_alt, size: cameraIconSize),
                             color: Colors.white,
                             onPressed: () => _showImageSourceDialog(
                                 'profile', 'Profile Photo'),
@@ -556,7 +590,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: fieldSpacing * 1.5),
 
                 // Personal Information Section
                 _buildSection(
@@ -820,11 +854,23 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
   }
 
   Widget _buildSection(String title, Widget content) {
+    // Get screen dimensions
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+    final isMediumScreen = screenWidth >= 600 && screenWidth < 900;
+
+    // Responsive dimensions
+    final sectionPadding =
+        isSmallScreen ? 16.0 : (isMediumScreen ? 20.0 : 24.0);
+    final titleFontSize = isSmallScreen ? 18.0 : (isMediumScreen ? 20.0 : 22.0);
+    final cardRadius = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 16.0);
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: EdgeInsets.symmetric(
+          horizontal: sectionPadding, vertical: sectionPadding / 2),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(cardRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -838,11 +884,11 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(sectionPadding),
             child: Text(
               title,
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.primaryBlue,
               ),
@@ -850,7 +896,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
           ),
           const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(sectionPadding),
             child: content,
           ),
         ],
@@ -870,21 +916,40 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
     int? maxLength,
     TextCapitalization textCapitalization = TextCapitalization.none,
   }) {
+    // Get screen dimensions
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+    final isMediumScreen = screenWidth >= 600 && screenWidth < 900;
+
+    // Responsive dimensions
+    final labelFontSize = isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 16.0);
+    final inputFontSize = isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 16.0);
+    final iconSize = isSmallScreen ? 20.0 : (isMediumScreen ? 24.0 : 24.0);
+    final fieldRadius = isSmallScreen ? 12.0 : (isMediumScreen ? 12.0 : 12.0);
+    final borderWidth = isSmallScreen ? 1.5 : (isMediumScreen ? 2.0 : 2.0);
+    final contentPadding = isSmallScreen
+        ? const EdgeInsets.symmetric(horizontal: 12, vertical: 12)
+        : (isMediumScreen
+            ? const EdgeInsets.symmetric(horizontal: 16, vertical: 16)
+            : const EdgeInsets.symmetric(horizontal: 16, vertical: 16));
+
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       maxLength: maxLength,
       textCapitalization: textCapitalization,
+      style: GoogleFonts.poppins(fontSize: inputFontSize),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.poppins(),
-        prefixIcon: Icon(icon, color: const Color(0xFF323d4f)),
+        labelStyle: GoogleFonts.poppins(fontSize: labelFontSize),
+        prefixIcon: Icon(icon, color: const Color(0xFF323d4f), size: iconSize),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
                   obscureText ? Icons.visibility : Icons.visibility_off,
                   color: const Color(0xFF323d4f),
+                  size: iconSize,
                 ),
                 onPressed: onVisibilityToggle,
               )
@@ -892,63 +957,74 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF323d4f),
-            width: 2.0,
+          borderRadius: BorderRadius.circular(fieldRadius),
+          borderSide: BorderSide(
+            color: const Color(0xFF323d4f),
+            width: borderWidth,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF323d4f),
-            width: 2.0,
+          borderRadius: BorderRadius.circular(fieldRadius),
+          borderSide: BorderSide(
+            color: const Color(0xFF323d4f),
+            width: borderWidth,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFD4AF37),
-            width: 2.0,
+          borderRadius: BorderRadius.circular(fieldRadius),
+          borderSide: BorderSide(
+            color: const Color(0xFFD4AF37),
+            width: borderWidth,
           ),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
+          borderRadius: BorderRadius.circular(fieldRadius),
+          borderSide: BorderSide(
             color: Colors.red,
           ),
         ),
         errorStyle: GoogleFonts.poppins(
           color: Colors.red,
-          fontSize: 12,
+          fontSize: isSmallScreen ? 11 : 12,
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
+        contentPadding: contentPadding,
         counterText: maxLength != null ? '' : null,
       ),
-      style: GoogleFonts.poppins(),
       validator: validator,
     );
   }
 
   Widget _buildImagePicker(String title, File? image, VoidCallback onTap) {
+    // Get screen dimensions
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+    final isMediumScreen = screenWidth >= 600 && screenWidth < 900;
+
+    // Responsive dimensions
+    final imageUploadHeight =
+        isSmallScreen ? 120.0 : (isMediumScreen ? 150.0 : 150.0);
+    final imageUploadIconSize =
+        isSmallScreen ? 40.0 : (isMediumScreen ? 48.0 : 48.0);
+    final imageUploadFontSize =
+        isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 16.0);
+    final cardRadius = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 16.0);
+    final editIconSize = isSmallScreen ? 20.0 : (isMediumScreen ? 24.0 : 24.0);
+
     return InkWell(
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        height: 150,
+        height: imageUploadHeight,
         decoration: BoxDecoration(
           color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(cardRadius),
           border: Border.all(color: Colors.grey[300]!),
         ),
         child: image != null
             ? Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(cardRadius),
                     child: Image.file(
                       image,
                       width: double.infinity,
@@ -965,7 +1041,8 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.white),
+                        icon: Icon(Icons.edit,
+                            color: Colors.white, size: editIconSize),
                         onPressed: onTap,
                       ),
                     ),
@@ -977,21 +1054,21 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                 children: [
                   Icon(
                     Icons.cloud_upload_outlined,
-                    size: 48,
+                    size: imageUploadIconSize,
                     color: AppTheme.primaryBlue.withOpacity(0.5),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     title,
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: imageUploadFontSize,
                       color: AppTheme.primaryBlue.withOpacity(0.7),
                     ),
                   ),
                   Text(
                     'Tap to upload',
                     style: GoogleFonts.poppins(
-                      fontSize: 14,
+                      fontSize: imageUploadFontSize - 2,
                       color: Colors.grey[600],
                     ),
                   ),

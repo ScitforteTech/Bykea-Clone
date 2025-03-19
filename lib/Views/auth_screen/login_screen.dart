@@ -25,17 +25,41 @@ class _loginScreenState extends State<loginScreen> {
   bool _obscurePassword = true;
 
   void _login() {
+    // Debug logging for form state
+    debugPrint('Form is valid: ${_formKey.currentState!.validate()}');
+    debugPrint('Email field value: ${emailController.text}');
+    debugPrint('Password field value: ${passwordController.text}');
+
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
 
+      // Debug logging for credentials
+      debugPrint('Attempting login with:');
+      debugPrint('Email (trimmed): ${emailController.text.trim()}');
+      debugPrint('Password (trimmed): ${passwordController.text.trim()}');
+      debugPrint('Expected email: fahim@gmail.com');
+      debugPrint('Expected password: 1234');
+
       // Simulate API call
       Future.delayed(const Duration(seconds: 2), () {
-        // Check credentials
-        if (emailController.text == "fahim@gmail.com" &&
-            passwordController.text == "1234") {
+        // Check credentials with more detailed error reporting
+        if (emailController.text.trim().toLowerCase() != "fahim@gmail.com") {
+          debugPrint('Login failed: Email mismatch');
+          setState(() {
+            _isLoading = false;
+            _errorMessage = "Invalid email address";
+          });
+        } else if (passwordController.text.trim() != "1234") {
+          debugPrint('Login failed: Password mismatch');
+          setState(() {
+            _isLoading = false;
+            _errorMessage = "Invalid password";
+          });
+        } else {
+          debugPrint('Login successful, navigating to dashboard');
           // Navigate to dashboard
           Navigator.pushAndRemoveUntil(
             context,
@@ -44,13 +68,20 @@ class _loginScreenState extends State<loginScreen> {
             ),
             (route) => false,
           );
-        } else {
-          setState(() {
-            _isLoading = false;
-            _errorMessage = "Invalid email or password";
-          });
         }
       });
+    } else {
+      debugPrint('Form validation failed');
+      // Show which field failed validation
+      if (emailController.text.isEmpty) {
+        setState(() {
+          _errorMessage = "Please enter your email";
+        });
+      } else if (passwordController.text.isEmpty) {
+        setState(() {
+          _errorMessage = "Please enter your password";
+        });
+      }
     }
   }
 

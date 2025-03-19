@@ -16,6 +16,26 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 360;
+    final isMediumScreen = screenWidth >= 360 && screenWidth < 600;
+
+    // Calculate responsive dimensions
+    final sectionPadding =
+        isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
+    final fieldSpacing = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
+    final titleFontSize = isSmallScreen ? 16.0 : (isMediumScreen ? 18.0 : 20.0);
+    final subtitleFontSize =
+        isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
+    final headingFontSize =
+        isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 18.0);
+    final iconSize = isSmallScreen ? 24.0 : (isMediumScreen ? 28.0 : 32.0);
+    final cardPadding = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
+    final cardRadius = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
+    final chipHeight = isSmallScreen ? 40.0 : (isMediumScreen ? 45.0 : 50.0);
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -24,7 +44,7 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
         title: Text(
           'Earnings',
           style: GoogleFonts.poppins(
-            fontSize: CustomSize().customWidth(context) / 20,
+            fontSize: titleFontSize,
             fontWeight: FontWeight.w300,
             color: Colors.white,
           ),
@@ -35,52 +55,58 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
       ),
       body: Column(
         children: [
-          _buildEarningsSummary(context),
-          _buildPeriodSelector(context),
-          _buildEarningsBreakdown(context),
+          _buildEarningsSummary(context, iconSize, sectionPadding, cardRadius),
+          _buildPeriodSelector(context, chipHeight),
+          _buildEarningsBreakdown(context, headingFontSize, subtitleFontSize,
+              cardPadding, cardRadius),
           Expanded(
-            child: _buildEarningsHistory(context),
+            child: _buildEarningsHistory(context, headingFontSize,
+                subtitleFontSize, cardPadding, cardRadius),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEarningsSummary(BuildContext context) {
+  Widget _buildEarningsSummary(
+      BuildContext context, double iconSize, double padding, double radius) {
     return Container(
-      margin: EdgeInsets.all(MediaQuery.of(context).size.width * 0.03),
-      padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.03),
+      margin: EdgeInsets.all(padding),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppTheme.primaryBlue, AppTheme.primaryBlue],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(radius),
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildEarningItem('Total Earnings', 'Rs. 8,450', 'PKR'),
-              _buildEarningItem('Rides', '12', 'assets/images/sedan.png'),
+              _buildEarningItem('Total Earnings', 'Rs. 8,450', 'PKR', iconSize),
               _buildEarningItem(
-                  'Tips', 'Rs. 450', Icons.volunteer_activism_rounded),
+                  'Rides', '12', 'assets/images/sedan.png', iconSize),
+              _buildEarningItem('Tips', 'Rs. 450',
+                  Icons.volunteer_activism_rounded, iconSize),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: padding),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(
+                horizontal: padding, vertical: padding / 2),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(radius),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.trending_up, color: Colors.green[300], size: 20),
-                const SizedBox(width: 8),
+                Icon(Icons.trending_up,
+                    color: Colors.green[300], size: iconSize * 0.625),
+                SizedBox(width: padding / 2),
                 Text(
                   '20% more than last week',
                   style: GoogleFonts.poppins(
@@ -96,25 +122,26 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
     );
   }
 
-  Widget _buildEarningItem(String label, String value, dynamic icon) {
+  Widget _buildEarningItem(
+      String label, String value, dynamic icon, double iconSize) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox(
-          height: 64,
+          height: iconSize * 2,
           child: Center(
             child: icon is IconData
-                ? Icon(icon, color: Colors.white, size: 32)
+                ? Icon(icon, color: Colors.white, size: iconSize)
                 : icon is String && icon.contains('assets/')
                     ? Image.asset(
                         icon,
-                        width: 60,
-                        height: 60,
+                        width: iconSize * 1.875,
+                        height: iconSize * 1.875,
                       )
                     : Text(
                         icon,
                         style: GoogleFonts.poppins(
-                          fontSize: 24,
+                          fontSize: iconSize * 0.75,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
@@ -142,21 +169,21 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
     );
   }
 
-  Widget _buildPeriodSelector(BuildContext context) {
+  Widget _buildPeriodSelector(BuildContext context, double height) {
     return Container(
-      height: 50,
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      height: height,
+      margin: EdgeInsets.symmetric(horizontal: height * 0.32),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: periods.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: EdgeInsets.only(right: height * 0.16),
             child: FilterChip(
               label: Text(
                 periods[index],
                 style: GoogleFonts.poppins(
-                  fontSize: MediaQuery.of(context).size.width * 0.028,
+                  fontSize: height * 0.28,
                   fontWeight: FontWeight.w500,
                   color: selectedPeriod == periods[index]
                       ? Colors.white
@@ -179,13 +206,14 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
     );
   }
 
-  Widget _buildEarningsBreakdown(BuildContext context) {
+  Widget _buildEarningsBreakdown(BuildContext context, double headingSize,
+      double textSize, double padding, double radius) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(padding),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(radius),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -201,23 +229,23 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
           Text(
             'Earnings Breakdown',
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: headingSize,
               fontWeight: FontWeight.w600,
               color: const Color(0xFF323D4F),
             ),
           ),
-          const SizedBox(height: 16),
-          _buildBreakdownItem('Base Fare', 'Rs. 6,500'),
-          _buildBreakdownItem('Tips', 'Rs. 450'),
-          _buildBreakdownItem('Bonuses', 'Rs. 1,500'),
-          const Divider(height: 24),
-          _buildBreakdownItem('Total', 'Rs. 8,450', isTotal: true),
+          SizedBox(height: padding),
+          _buildBreakdownItem('Base Fare', 'Rs. 6,500', textSize),
+          _buildBreakdownItem('Tips', 'Rs. 450', textSize),
+          _buildBreakdownItem('Bonuses', 'Rs. 1,500', textSize),
+          Divider(height: padding * 1.5),
+          _buildBreakdownItem('Total', 'Rs. 8,450', headingSize, isTotal: true),
         ],
       ),
     );
   }
 
-  Widget _buildBreakdownItem(String label, String value,
+  Widget _buildBreakdownItem(String label, String value, double fontSize,
       {bool isTotal = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -227,7 +255,7 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: isTotal ? 16 : 14,
+              fontSize: fontSize,
               fontWeight: isTotal ? FontWeight.w600 : FontWeight.w400,
               color: const Color(0xFF323D4F),
             ),
@@ -235,7 +263,7 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: isTotal ? 16 : 14,
+              fontSize: fontSize,
               fontWeight: isTotal ? FontWeight.w600 : FontWeight.w400,
               color: const Color(0xFF323D4F),
             ),
@@ -245,7 +273,8 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
     );
   }
 
-  Widget _buildEarningsHistory(BuildContext context) {
+  Widget _buildEarningsHistory(BuildContext context, double headingSize,
+      double textSize, double padding, double radius) {
     final List<Map<String, dynamic>> earningsHistory = [
       {
         'date': 'Today',
@@ -268,19 +297,19 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
     ];
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: padding),
       itemCount: earningsHistory.length,
       itemBuilder: (context, index) {
         final data = earningsHistory[index];
         return Card(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: EdgeInsets.only(bottom: padding),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(radius),
           ),
           elevation: 2,
           shadowColor: Colors.grey[300],
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(padding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -290,24 +319,24 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
                     Text(
                       data['date'],
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: headingSize,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF323D4F),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: padding * 0.75,
+                        vertical: padding * 0.25,
                       ),
                       decoration: BoxDecoration(
                         color: AppTheme.primaryBlue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(radius * 1.67),
                       ),
                       child: Text(
                         '${data['rides']} rides',
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: textSize * 0.75,
                           fontWeight: FontWeight.w500,
                           color: AppTheme.primaryBlue,
                         ),
@@ -315,7 +344,7 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: padding * 0.75),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -325,15 +354,15 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
                         Text(
                           'Earnings',
                           style: GoogleFonts.poppins(
-                            fontSize: 12,
+                            fontSize: textSize * 0.75,
                             color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: padding * 0.25),
                         Text(
                           data['earnings'],
                           style: GoogleFonts.poppins(
-                            fontSize: 16,
+                            fontSize: headingSize,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFF323D4F),
                           ),
@@ -346,15 +375,15 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
                         Text(
                           'Tips',
                           style: GoogleFonts.poppins(
-                            fontSize: 12,
+                            fontSize: textSize * 0.75,
                             color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: padding * 0.25),
                         Text(
                           data['tips'],
                           style: GoogleFonts.poppins(
-                            fontSize: 16,
+                            fontSize: headingSize,
                             fontWeight: FontWeight.w600,
                             color: Colors.green,
                           ),
