@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/CustomSize.dart';
+import 'package:vroom_ride_app/Resources/theme.dart';
 
 class RideRequestsPage extends StatefulWidget {
   const RideRequestsPage({super.key});
@@ -50,6 +51,22 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
 
       // Then filter the list to keep only the accepted ride
       rideRequests = rideRequests.where((ride) => ride["id"] == id).toList();
+
+      // Show feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ride accepted! All other requests cleared.'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'VIEW DETAILS',
+            textColor: Colors.white,
+            onPressed: () {
+              _showRideDetailsDialog(rideRequests[0]);
+            },
+          ),
+        ),
+      );
     });
   }
 
@@ -63,7 +80,97 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
 
       // Remove the rejected ride from the list
       rideRequests = rideRequests.where((ride) => ride["id"] != id).toList();
+
+      // Show feedback
+      if (rideRequests.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No more ride requests available.'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+            action: SnackBarAction(
+              label: 'FIND RIDES',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.pop(context); // Return to previous screen
+              },
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ride request rejected.'),
+            backgroundColor: Colors.red.shade400,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
     });
+  }
+
+  void _showRideDetailsDialog(Map<String, dynamic> ride) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Ride Details'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundImage: NetworkImage(ride["driverImage"]),
+                ),
+                title: Text(ride["driverName"]),
+                subtitle: Text(ride["carDetails"]),
+                contentPadding: EdgeInsets.zero,
+              ),
+              Divider(),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.location_on, color: Color(0xFF323d4f), size: 16),
+                  SizedBox(width: 8),
+                  Expanded(child: Text('Pickup: ${ride["pickup"]}')),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.location_on, color: Color(0xFFD4AF37), size: 16),
+                  SizedBox(width: 8),
+                  Expanded(child: Text('Dropoff: ${ride["dropoff"]}')),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.access_time, color: Colors.grey, size: 16),
+                  SizedBox(width: 8),
+                  Text('Arrival: ${ride["arrival"]}'),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.attach_money, color: Colors.green, size: 16),
+                  SizedBox(width: 8),
+                  Text('Fare: PKR ${ride["fare"]}'),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -101,11 +208,11 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
               child: Container(
                 constraints: BoxConstraints(
                   minHeight: MediaQuery.of(context).size.height * 0.17,
-                  maxHeight: MediaQuery.of(context).size.height * 0.22,
                 ),
                 padding:
                     EdgeInsets.all(MediaQuery.of(context).size.width * 0.03),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Date and Time row at top left
@@ -119,6 +226,7 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                             fontSize: 11,
                             color: Colors.grey[600],
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
@@ -210,15 +318,17 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                           backgroundImage: NetworkImage(ride["driverImage"]),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          ride["driverName"],
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF323d4f),
+                        Flexible(
+                          child: Text(
+                            ride["driverName"],
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF323d4f),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -230,6 +340,7 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
+                          flex: 2,
                           child: Text(
                             ride["carDetails"],
                             style: GoogleFonts.poppins(
@@ -250,8 +361,8 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                             children: [
                               Expanded(
                                 child: SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      0.035,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.04,
                                   child: ElevatedButton(
                                     onPressed: () => acceptRide(ride["id"]),
                                     style: ElevatedButton.styleFrom(
@@ -260,20 +371,20 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal:
-                                            MediaQuery.of(context).size.width *
-                                                0.06,
-                                      ),
+                                      padding: EdgeInsets.zero,
                                     ),
-                                    child: Text(
-                                      "Accept",
-                                      style: GoogleFonts.poppins(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.028,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        "Accept",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.03,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -284,8 +395,8 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                                       MediaQuery.of(context).size.width * 0.04),
                               Expanded(
                                 child: SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      0.035,
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.04,
                                   child: ElevatedButton(
                                     onPressed: () => rejectRide(ride["id"]),
                                     style: ElevatedButton.styleFrom(
@@ -296,19 +407,19 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal:
-                                            MediaQuery.of(context).size.width *
-                                                0.06,
-                                      ),
+                                      padding: EdgeInsets.zero,
                                     ),
-                                    child: Text(
-                                      "Reject",
-                                      style: GoogleFonts.poppins(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.028,
-                                        fontWeight: FontWeight.w500,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        "Reject",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.03,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -326,16 +437,50 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
-                              child: Text(
-                                ride["status"],
-                                style: GoogleFonts.poppins(
-                                  fontSize:
-                                      MediaQuery.of(context).size.width * 0.032,
-                                  fontWeight: FontWeight.w600,
-                                  color: ride["status"] == "Accepted"
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    ride["status"] == "Accepted"
+                                        ? Icons.check_circle
+                                        : Icons.cancel,
+                                    color: ride["status"] == "Accepted"
+                                        ? Colors.green
+                                        : Colors.red,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    ride["status"] == "Accepted"
+                                        ? "Ride Accepted"
+                                        : "Ride Rejected",
+                                    style: GoogleFonts.poppins(
+                                      fontSize:
+                                          MediaQuery.of(context).size.width *
+                                              0.032,
+                                      fontWeight: FontWeight.w600,
+                                      color: ride["status"] == "Accepted"
+                                          ? Colors.green
+                                          : Colors.red,
+                                    ),
+                                  ),
+                                  if (ride["status"] == "Accepted")
+                                    TextButton(
+                                      onPressed: () =>
+                                          _showRideDetailsDialog(ride),
+                                      child: Text(
+                                        "View Details",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.028,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppTheme.primaryBlue,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                           ),

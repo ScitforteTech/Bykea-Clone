@@ -77,6 +77,109 @@ class _DriverTripRequestsScreenState extends State<DriverTripRequestsScreen> {
     ),
   ];
 
+  // Track trips by status
+  List<TripRequest> displayedTrips = [];
+  TripRequest? acceptedTrip;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the displayed trips
+    displayedTrips = List.from(tripRequests);
+  }
+
+  void _acceptTrip(TripRequest trip) {
+    setState(() {
+      // Set this trip as accepted
+      acceptedTrip = trip;
+      // Clear all other trips
+      displayedTrips.clear();
+      // Add only the accepted trip to the displayed list
+      displayedTrips.add(trip);
+    });
+
+    // Show a confirmation snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Trip accepted! Starting navigation...'),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'VIEW',
+          textColor: Colors.white,
+          onPressed: () {
+            // Here you would navigate to trip details
+            _showTripDetailsDialog(trip);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _rejectTrip(TripRequest trip) {
+    setState(() {
+      // Remove this trip from the displayed list
+      displayedTrips.removeWhere((t) =>
+          t.passengerName == trip.passengerName &&
+          t.pickup == trip.pickup &&
+          t.dropoff == trip.dropoff);
+    });
+
+    // Show a rejection snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Trip rejected'),
+        backgroundColor: Colors.orange,
+        duration: const Duration(seconds: 1),
+      ),
+    );
+
+    // Show a message if no more trips
+    if (displayedTrips.isEmpty) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No more trips available'),
+              backgroundColor: Colors.grey,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      });
+    }
+  }
+
+  void _showTripDetailsDialog(TripRequest trip) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Trip Details'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Passenger: ${trip.passengerName}'),
+            SizedBox(height: 8),
+            Text('Pickup: ${trip.pickup}'),
+            SizedBox(height: 8),
+            Text('Dropoff: ${trip.dropoff}'),
+            SizedBox(height: 8),
+            Text('Fare: PKR ${trip.fare}'),
+            SizedBox(height: 8),
+            Text('Distance: ${trip.distance}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,9 +201,9 @@ class _DriverTripRequestsScreenState extends State<DriverTripRequestsScreen> {
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: tripRequests.length,
+        itemCount: displayedTrips.length,
         itemBuilder: (context, index) {
-          return _buildTripRequestCard(tripRequests[index]);
+          return _buildTripRequestCard(displayedTrips[index]);
         },
       ),
     );
@@ -332,6 +435,69 @@ class _DriverTripRequestsScreenState extends State<DriverTripRequestsScreen> {
   }
 
   Widget _buildTripActions(TripRequest request) {
+    // If this is the accepted trip, show a different UI
+    final isAccepted = acceptedTrip != null &&
+        acceptedTrip!.passengerName == request.passengerName &&
+        acceptedTrip!.pickup == request.pickup &&
+        acceptedTrip!.dropoff == request.dropoff;
+
+    if (isAccepted) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: Colors.grey[300]!,
+            ),
+          ),
+          color: Colors.green.withOpacity(0.05),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Trip Accepted',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _showTripDetailsDialog(request);
+                  },
+                  icon: Icon(Icons.directions, size: 18),
+                  label: Text('Navigate'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryBlue,
+                    side: BorderSide(color: AppTheme.primaryBlue),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Get ready for pickup at ${request.pickup}',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Regular action buttons for non-accepted trips
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -346,7 +512,7 @@ class _DriverTripRequestsScreenState extends State<DriverTripRequestsScreen> {
           Expanded(
             child: TextButton(
               onPressed: () {
-                // Implement accept logic
+                _acceptTrip(request);
               },
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -369,7 +535,7 @@ class _DriverTripRequestsScreenState extends State<DriverTripRequestsScreen> {
           Expanded(
             child: TextButton(
               onPressed: () {
-                // Implement decline logic
+                _rejectTrip(request);
               },
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
