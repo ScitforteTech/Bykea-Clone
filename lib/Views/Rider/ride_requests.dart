@@ -136,7 +136,7 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                                   color: Color(0xFF323d4f), size: 8),
                               Container(
                                 width: 2,
-                                height: 16,
+                                height: 18,
                                 color: Colors.grey[300],
                                 margin: const EdgeInsets.symmetric(vertical: 3),
                               ),
@@ -156,7 +156,7 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 5),
+                                    padding: const EdgeInsets.only(top: 4),
                                     child: Text(
                                       ride["pickup"],
                                       style: GoogleFonts.poppins(
@@ -185,12 +185,16 @@ class _RideRequestsPageState extends State<RideRequestsPage> {
                                     ),
                                   ),
                                   const SizedBox(width: 12),
-                                  Text(
-                                    "PKR ${ride["fare"]}",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF323d4f),
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                        bottom: 1), // Add bottom padding here
+                                    child: Text(
+                                      "PKR ${ride["fare"]}",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF323d4f),
+                                      ),
                                     ),
                                   ),
                                 ],

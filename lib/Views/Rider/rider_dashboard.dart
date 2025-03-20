@@ -12,6 +12,7 @@ import 'package:vroom_ride_app/Views/Rider/ride_requests.dart';
 import 'package:vroom_ride_app/Views/Rider/wallet.dart';
 import 'package:vroom_ride_app/Views/Rider/notification_page.dart';
 import 'package:vroom_ride_app/Views/Rider/auth_choice_screen.dart';
+import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
 
 class RiderDashboard extends StatefulWidget {
   const RiderDashboard({super.key});
@@ -314,10 +315,13 @@ class _RiderDashboardState extends State<RiderDashboard> {
                       child: Row(
                         children: [
                           const SizedBox(width: 16),
-                          const Icon(
-                            Icons.circle,
-                            color: Colors.green,
-                            size: 16,
+                          Padding(
+                            padding: const EdgeInsets.only(left: 3.4),
+                            child: Icon(
+                              Icons.circle,
+                              color: Colors.green,
+                              size: 16,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -707,7 +711,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const AuthChoiceScreen(),
+                      builder: (context) => const loginScreen(),
                     ),
                     (route) => false,
                   );

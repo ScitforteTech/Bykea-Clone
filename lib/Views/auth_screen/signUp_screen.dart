@@ -385,7 +385,11 @@ class _signUpScreenState extends State<signUpScreen> {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.person_add, size: 24),
+                              const Icon(
+                                Icons.person_add,
+                                size: 24,
+                                color: Colors.white,
+                              ),
                               const SizedBox(width: 10),
                               Text(
                                 "Register",

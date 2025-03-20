@@ -127,7 +127,7 @@ class RideHistoryPage extends StatelessWidget {
                                 color: Color(0xFF323d4f), size: 8),
                             Container(
                               width: 2,
-                              height: 16,
+                              height: 17,
                               color: Colors.grey[300],
                               margin: const EdgeInsets.symmetric(vertical: 3),
                             ),
@@ -143,7 +143,7 @@ class RideHistoryPage extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.only(top: 5),
+                              padding: const EdgeInsets.only(top: 3),
                               child: Text(
                                 ride['from'],
                                 style: GoogleFonts.poppins(
@@ -170,12 +170,15 @@ class RideHistoryPage extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                Text(
-                                  ride['fare'],
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF323d4f),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 1),
+                                  child: Text(
+                                    ride['fare'],
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF323d4f),
+                                    ),
                                   ),
                                 ),
                               ],
