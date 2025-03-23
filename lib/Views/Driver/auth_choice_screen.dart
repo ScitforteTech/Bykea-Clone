@@ -177,19 +177,23 @@ class AuthChoiceScreen extends StatelessWidget {
             horizontal: buttonHeight / 2,
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: iconSize, color: Colors.white),
-            SizedBox(width: buttonHeight / 4),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: buttonFontSize,
-                fontWeight: FontWeight.w600,
+        child: Padding(
+          padding:
+              title == 'Login' ? EdgeInsets.only(right: 22.0) : EdgeInsets.zero,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: iconSize, color: Colors.white),
+              SizedBox(width: buttonHeight / 4),
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: buttonFontSize,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
