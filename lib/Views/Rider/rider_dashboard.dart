@@ -706,14 +706,56 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   ),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
-                  // Logout and navigate to auth choice screen
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const loginScreen(),
-                    ),
-                    (route) => false,
+                  Navigator.pop(context); // Close drawer
+                  // Show confirmation dialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(
+                          'Logout',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        content: Text(
+                          'Are you sure you want to logout?',
+                          style: GoogleFonts.poppins(),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // Close dialog
+                            },
+                            child: Text(
+                              'Cancel',
+                              style: GoogleFonts.poppins(),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              // Navigate to login screen and remove all previous routes
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const loginScreen(),
+                                ),
+                                (route) => false,
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.red,
+                            ),
+                            child: Text(
+                              'Logout',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
