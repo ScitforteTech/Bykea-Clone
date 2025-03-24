@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:vroom_ride_app/Views/Rider/earnings.dart';
 import 'package:vroom_ride_app/Views/Rider/edit_profile_page.dart';
 import 'package:vroom_ride_app/Views/Rider/faqs_page.dart';
@@ -22,8 +21,6 @@ class RiderDashboard extends StatefulWidget {
 }
 
 class _RiderDashboardState extends State<RiderDashboard> {
-  late GoogleMapController mapController;
-  final LatLng _center = const LatLng(24.8607, 67.0011); // Karachi coordinates
   String selectedVehicle = 'Moto';
 
   final Map<String, Map<String, dynamic>> vehicleTypes = {
@@ -49,428 +46,462 @@ class _RiderDashboardState extends State<RiderDashboard> {
     },
   };
 
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Google Map as background
-          GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: _center,
-              zoom: 15.0,
-            ),
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            zoomControlsEnabled: false,
-            mapType: MapType.normal,
-          ),
-
-          // Hamburger menu button
-          Positioned(
-            top: 40,
-            left: 16,
-            child: CircleAvatar(
-              backgroundColor: Colors.white,
-              radius: 25,
-              child: Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu, color: Colors.black),
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
+          // Map background placeholder - replace with your custom map implementation
+          Container(
+            color: Colors.grey[200],
+            child: Center(
+              child: Text(
+                'Map Area',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  color: Colors.grey[400],
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
 
-          // Current location indicator
-          Positioned(
-            top: 40,
-            right: 16,
-            child: CircleAvatar(
-              backgroundColor: Colors.white,
-              radius: 25,
-              child: IconButton(
-                icon: const Icon(Icons.my_location, color: Colors.black),
-                onPressed: () {
-                  mapController.animateCamera(
-                    CameraUpdate.newLatLng(_center),
-                  );
-                },
+          // Hamburger menu button - only visible when not interacting with map
+          Stack(
+            children: [
+              Positioned(
+                top: 40,
+                left: 16,
+                child: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  radius: 25,
+                  child: Builder(
+                    builder: (context) => IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.black),
+                      onPressed: () {
+                        Scaffold.of(context).openDrawer();
+                      },
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
 
-          // Ride stats card
-          Positioned(
-            top: 100,
-            left: 16,
-            right: 16,
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+          // Current location indicator - only visible when not interacting with map
+          Stack(
+            children: [
+              Positioned(
+                top: 40,
+                right: 16,
+                child: CircleAvatar(
+                  backgroundColor: Colors.white,
+                  radius: 25,
+                  child: IconButton(
+                    icon: const Icon(Icons.my_location, color: Colors.black),
+                    onPressed: () {
+                      // Handle location action for your custom map implementation
+                      debugPrint('Navigate to current location');
+                    },
+                  ),
+                ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+
+          // Ride stats card - only visible when not interacting with map
+          Stack(
+            children: [
+              Positioned(
+                top: 100,
+                left: 16,
+                right: 16,
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Ride more — help more',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Ride more — help more',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Rides: 0/4',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Rides: 0/4',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.grey[700],
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: ColorFiltered(
+                            colorFilter: const ColorFilter.mode(
+                              Color(0xFF323d4f),
+                              BlendMode.srcIn,
+                            ),
+                            child: Image.asset(
+                              'assets/images/logo1.png',
+                              height: 50,
+                              width: 50,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: ColorFiltered(
-                        colorFilter: const ColorFilter.mode(
-                          Color(0xFF323d4f),
-                          BlendMode.srcIn,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Bottom sheet for ride booking - only visible when not interacting with map
+          DraggableScrollableSheet(
+            initialChildSize: 0.4,
+            minChildSize: 0.2,
+            maxChildSize: 0.8,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: ListView(
+                  controller: scrollController,
+                  padding: EdgeInsets.zero,
+                  children: [
+                    // Drag handle
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8),
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
                         ),
-                        child: Image.asset(
-                          'assets/images/logo1.png',
-                          height: 50,
-                          width: 50,
-                          fit: BoxFit.contain,
+                      ),
+                    ),
+                    // Vehicle type selection
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        top: 16,
+                        bottom: 8,
+                      ),
+                      child: Text(
+                        'Select Vehicle Type',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF323d4f),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      height: 120,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: vehicleTypes.entries.map((entry) {
+                          final type = entry.key;
+                          final data = entry.value;
+                          final isSelected = selectedVehicle == type;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedVehicle = type;
+                              });
+                            },
+                            child: Container(
+                              width: 90,
+                              margin: const EdgeInsets.only(right: 12),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? const Color(0xFF323d4f).withOpacity(0.1)
+                                    : Colors.grey[100],
+                                borderRadius: BorderRadius.circular(16),
+                                border: isSelected
+                                    ? Border.all(
+                                        color: const Color(0xFF323d4f),
+                                        width: 2,
+                                      )
+                                    : null,
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: const Color(0xFF323d4f)
+                                              .withOpacity(0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  type == 'Ride A/C'
+                                      ? Image.asset(
+                                          data['image'] as String,
+                                          height: 60,
+                                          width: 60,
+                                        )
+                                      : Image.asset(
+                                          data['image'] as String,
+                                          height: 50,
+                                          width: 50,
+                                        ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    type,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                      color: isSelected
+                                          ? const Color(0xFF323d4f)
+                                          : Colors.grey[700],
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.person,
+                                        size: 14,
+                                        color: Colors.grey[700],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${data['seats']}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+
+                    // Current location
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, bottom: 8),
+                      child: Text(
+                        'Pickup Location',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF323d4f),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 16),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 3.4),
+                              child: Icon(
+                                Icons.circle,
+                                color: Colors.green,
+                                size: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Enter pickup location',
+                                  border: InputBorder.none,
+                                  hintStyle: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Destination input
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, bottom: 8),
+                      child: Text(
+                        'Drop-off Location',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF323d4f),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 16),
+                            const Icon(
+                              Icons.location_on,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Enter drop-off location',
+                                  border: InputBorder.none,
+                                  hintStyle: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Fare input
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, bottom: 8),
+                      child: Text(
+                        'Your Fare Offer',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF323d4f),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Text(
+                              'PKR',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Enter your fare',
+                                  border: InputBorder.none,
+                                  hintStyle: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.grey,
+                              ),
+                              onPressed: () {},
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Find driver button
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF323d4f),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.monetization_on, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Find a driver',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.tune, size: 20),
+                          ],
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-
-          // Bottom sheet for ride booking
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Vehicle type selection
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 16, top: 16, bottom: 8),
-                    child: Text(
-                      'Select Vehicle Type',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF323d4f),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    height: 120,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: vehicleTypes.entries.map((entry) {
-                        final type = entry.key;
-                        final data = entry.value;
-                        final isSelected = selectedVehicle == type;
-
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedVehicle = type;
-                            });
-                          },
-                          child: Container(
-                            width: 90,
-                            margin: const EdgeInsets.only(right: 12),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? const Color(0xFF323d4f).withOpacity(0.1)
-                                  : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(16),
-                              border: isSelected
-                                  ? Border.all(
-                                      color: const Color(0xFF323d4f), width: 2)
-                                  : null,
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: const Color(0xFF323d4f)
-                                            .withOpacity(0.2),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      )
-                                    ]
-                                  : null,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                type == 'Ride A/C'
-                                    ? Image.asset(
-                                        data['image'] as String,
-                                        height: 60,
-                                        width: 60,
-                                      )
-                                    : Image.asset(
-                                        data['image'] as String,
-                                        height: 50,
-                                        width: 50,
-                                      ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  type,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    color: isSelected
-                                        ? const Color(0xFF323d4f)
-                                        : Colors.grey[700],
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.person,
-                                      size: 14,
-                                      color: Colors.grey[700],
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${data['seats']}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        color: Colors.grey[700],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-
-                  // Current location
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 8),
-                    child: Text(
-                      'Pickup Location',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF323d4f),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 16),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 3.4),
-                            child: Icon(
-                              Icons.circle,
-                              color: Colors.green,
-                              size: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Enter pickup location',
-                                border: InputBorder.none,
-                                hintStyle: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Destination input
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 8),
-                    child: Text(
-                      'Drop-off Location',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF323d4f),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 16),
-                          const Icon(Icons.location_on, color: Colors.red),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Enter drop-off location',
-                                border: InputBorder.none,
-                                hintStyle: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Fare input
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 8),
-                    child: Text(
-                      'Your Fare Offer',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF323d4f),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Text(
-                            'PKR',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Enter your fare',
-                                border: InputBorder.none,
-                                hintStyle: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.grey),
-                            onPressed: () {},
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Find driver button
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF323d4f),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.monetization_on, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Find a driver',
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.tune, size: 20),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -551,7 +582,8 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const RideRequestsPage()),
+                      builder: (context) => const RideRequestsPage(),
+                    ),
                   );
                 },
               ),
@@ -594,8 +626,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
               ),
               const Divider(),
               ListTile(
-                leading: const Icon(Icons.account_balance_wallet,
-                    color: Color(0xFFD4AF37)),
+                leading: const Icon(
+                  Icons.account_balance_wallet,
+                  color: Color(0xFFD4AF37),
+                ),
                 title: Text(
                   'Wallet',
                   style: GoogleFonts.poppins(
@@ -613,8 +647,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
               ),
               const Divider(),
               ListTile(
-                leading:
-                    const Icon(Icons.notifications, color: Color(0xFFD4AF37)),
+                leading: const Icon(
+                  Icons.notifications,
+                  color: Color(0xFFD4AF37),
+                ),
                 title: Text(
                   'Notifications',
                   style: GoogleFonts.poppins(
@@ -628,7 +664,8 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const NotificationPage()),
+                      builder: (context) => const NotificationPage(),
+                    ),
                   );
                 },
               ),
@@ -653,8 +690,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
               ),
               const Divider(),
               ListTile(
-                leading:
-                    const Icon(Icons.privacy_tip, color: Color(0xFFD4AF37)),
+                leading: const Icon(
+                  Icons.privacy_tip,
+                  color: Color(0xFFD4AF37),
+                ),
                 title: Text(
                   'Privacy Policy',
                   style: GoogleFonts.poppins(
@@ -668,15 +707,18 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const PrivacyPolicyPage()),
+                      builder: (context) => const PrivacyPolicyPage(),
+                    ),
                   );
                 },
               ),
               const Divider(),
               // Help & Support Item
               ListTile(
-                leading:
-                    const Icon(Icons.help_outline, color: Color(0xFFD4AF37)),
+                leading: const Icon(
+                  Icons.help_outline,
+                  color: Color(0xFFD4AF37),
+                ),
                 title: Text(
                   'Help & Support',
                   style: GoogleFonts.poppins(
@@ -690,7 +732,8 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const SupportPage()),
+                      builder: (context) => const SupportPage(),
+                    ),
                   );
                 },
               ),
@@ -727,10 +770,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                             onPressed: () {
                               Navigator.pop(context); // Close dialog
                             },
-                            child: Text(
-                              'Cancel',
-                              style: GoogleFonts.poppins(),
-                            ),
+                            child: Text('Cancel', style: GoogleFonts.poppins()),
                           ),
                           TextButton(
                             onPressed: () {
@@ -765,12 +805,9 @@ class _RiderDashboardState extends State<RiderDashboard> {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   'Version 1.0.0',
-                  style: GoogleFonts.poppins(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
+                  style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
                 ),
-              )
+              ),
             ],
           ),
         ),

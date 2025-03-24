@@ -1,0 +1,2 @@
+D:/Vroom Rider/Bykea-Clone/android/app/.cxx/Debug/6u53j4u5/x86/CMakeFiles/edit_cache.dir
+D:/Vroom Rider/Bykea-Clone/android/app/.cxx/Debug/6u53j4u5/x86/CMakeFiles/rebuild_cache.dir
