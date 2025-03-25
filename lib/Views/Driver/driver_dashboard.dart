@@ -757,15 +757,13 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
           // Stats Grid - Positioned below top bar
           Positioned(
-            top: MediaQuery.of(context).padding.top + 100,
+            top: MediaQuery.of(context).padding.top + 120,
             left: 0,
             right: 0,
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: sectionPadding),
-              child: Wrap(
-                spacing: fieldSpacing,
-                runSpacing: fieldSpacing,
-                alignment: WrapAlignment.spaceEvenly,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildStatCard(
                     'Today\'s Earnings',
@@ -774,6 +772,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     AppTheme.goldAccent,
                     imagePath: 'assets/images/pkr.png',
                   ),
+                  SizedBox(width: fieldSpacing),
                   _buildStatCard(
                     'Completed Rides',
                     '4',
@@ -873,7 +872,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
                             },
                           ),
                         ),
-                        SizedBox(width: fieldSpacing / 2),
+                        SizedBox(
+                            width: fieldSpacing *
+                                2), // Increase spacing between actions
                         Expanded(
                           child: _buildQuickAction(
                             'History',
@@ -885,23 +886,6 @@ class _DriverDashboardState extends State<DriverDashboard> {
                                 MaterialPageRoute(
                                   builder: (context) =>
                                       const DriverRideHistoryScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        SizedBox(width: fieldSpacing / 2),
-                        Expanded(
-                          child: _buildQuickAction(
-                            'Support',
-                            Icons.help_outline,
-                            Colors.green,
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const DriverSupportScreen(),
                                 ),
                               );
                             },
@@ -950,14 +934,26 @@ class _DriverDashboardState extends State<DriverDashboard> {
     final isSmallScreen = screenWidth < 360;
     final isMediumScreen = screenWidth >= 360 && screenWidth < 600;
 
-    final cardWidth = screenWidth / 2.3;
-    final cardHeight = isSmallScreen ? 140.0 : (isMediumScreen ? 160.0 : 180.0);
-    final iconSize = isSmallScreen ? 45.0 : (isMediumScreen ? 50.0 : 60.0);
-    final titleFontSize = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
-    final valueFontSize = isSmallScreen ? 20.0 : (isMediumScreen ? 22.0 : 24.0);
+    // Adjust card dimensions to prevent overflow
+    final cardWidth = (screenWidth -
+            (isSmallScreen ? 48.0 : (isMediumScreen ? 64.0 : 80.0))) /
+        2;
+    final cardHeight = isSmallScreen
+        ? 120.0
+        : (isMediumScreen ? 140.0 : 160.0); // Reduced height
+    final iconSize = isSmallScreen
+        ? 40.0
+        : (isMediumScreen ? 45.0 : 50.0); // Reduced icon size
+    final titleFontSize = isSmallScreen
+        ? 12.0
+        : (isMediumScreen ? 14.0 : 16.0); // Reduced font size
+    final valueFontSize = isSmallScreen
+        ? 20.0
+        : (isMediumScreen ? 22.0 : 24.0); // Reduced font size
     final sectionPadding =
-        isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
-    final fieldSpacing = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
+        isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0); // Reduced padding
+    final fieldSpacing =
+        isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0); // Reduced spacing
 
     return Container(
       width: cardWidth,
@@ -1002,25 +998,39 @@ class _DriverDashboardState extends State<DriverDashboard> {
                       )
                     : Icon(icon, color: color, size: iconSize),
           ),
-          SizedBox(height: fieldSpacing),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: titleFontSize,
-              fontWeight: FontWeight.w500,
-              color: color,
+          SizedBox(height: fieldSpacing / 2), // Reduced spacing
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: fieldSpacing / 2),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: titleFontSize,
+                fontWeight: FontWeight.w500,
+                color: color,
+                height: 1.2,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
           ),
-          SizedBox(height: fieldSpacing / 2),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: valueFontSize,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-              letterSpacing: -0.5,
+          SizedBox(height: fieldSpacing / 4), // Reduced spacing
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: fieldSpacing / 2),
+            child: Text(
+              value,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: valueFontSize,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+                letterSpacing: -0.5,
+                height: 1.2,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ),
         ],
@@ -1034,10 +1044,10 @@ class _DriverDashboardState extends State<DriverDashboard> {
     final isSmallScreen = screenWidth < 360;
     final isMediumScreen = screenWidth >= 360 && screenWidth < 600;
 
-    final iconSize = isSmallScreen ? 18.0 : (isMediumScreen ? 20.0 : 22.0);
-    final fontSize = isSmallScreen ? 11.0 : (isMediumScreen ? 12.0 : 14.0);
-    final padding = isSmallScreen ? 8.0 : (isMediumScreen ? 10.0 : 12.0);
-    final fieldSpacing = isSmallScreen ? 6.0 : (isMediumScreen ? 8.0 : 10.0);
+    final iconSize = isSmallScreen ? 20.0 : (isMediumScreen ? 22.0 : 24.0);
+    final fontSize = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
+    final padding = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
+    final fieldSpacing = isSmallScreen ? 8.0 : (isMediumScreen ? 10.0 : 12.0);
 
     return InkWell(
       onTap: onTap,
@@ -1055,15 +1065,17 @@ class _DriverDashboardState extends State<DriverDashboard> {
           children: [
             Icon(icon, color: color, size: iconSize),
             SizedBox(width: fieldSpacing),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w500,
-                color: color,
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w500,
+                  color: color,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
             ),
           ],
         ),

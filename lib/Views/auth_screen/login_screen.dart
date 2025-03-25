@@ -6,11 +6,14 @@ import 'package:vroom_ride_app/Views/Driver/driver_dashboard.dart';
 import 'package:vroom_ride_app/Views/auth_screen/forgotPassword.dart';
 import 'package:vroom_ride_app/Views/auth_screen/signUp_screen.dart';
 import 'package:vroom_ride_app/Views/Driver/driver_registration.dart';
+import 'package:vroom_ride_app/Views/Rider/rider_registration.dart';
 import 'package:vroom_ride_app/components/customButton.dart';
 import 'package:vroom_ride_app/welcomePage.dart';
+import 'package:vroom_ride_app/Resources/theme.dart';
 
 class loginScreen extends StatefulWidget {
-  const loginScreen({super.key});
+  final String userType;
+  const loginScreen({super.key, this.userType = 'driver'});
 
   @override
   State<loginScreen> createState() => _loginScreenState();
@@ -234,25 +237,33 @@ class _loginScreenState extends State<loginScreen> {
                   ),
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment:
+                      MainAxisAlignment.end, // Aligns the content to the right
                   children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
+                    Padding(
+                      padding:
+                          EdgeInsets.only(right: 9.0), // Adds right padding
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => ResetPassword()));
-                      },
-                      child: Text(
-                        'Forgot password?',
-                        style: GoogleFonts.poppins(
+                                builder: (context) => ResetPassword()),
+                          );
+                        },
+                        child: Text(
+                          'Forgot password?',
+                          style: GoogleFonts.poppins(
                             color: const Color(0xFF323d4f),
                             fontWeight: FontWeight.w500,
-                            fontSize: CustomSize().customWidth(context) / 20),
-                      ),
-                    ),
+                            fontSize: CustomSize().customWidth(context) / 20,
+                          ),
+                        ),
+                      ), // InkWell closing
+                    ), // Padding closing
                   ],
-                ),
+                ), // Row closing
+
                 SizedBox(height: CustomSize().customHeight(context) / 12),
 
                 // Login button
@@ -295,36 +306,46 @@ class _loginScreenState extends State<loginScreen> {
                   ),
                 ),
                 SizedBox(height: CustomSize().customHeight(context) / 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Don't have an account? ",
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF323d4f),
-                        fontSize: CustomSize().customWidth(context) / 25,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const DriverRegistrationScreen(),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        "Sign Up",
+                Container(
+                  width: MediaQuery.sizeOf(context).width * 0.9,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Don't have an account? ",
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFFD4AF37),
-                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
                           fontSize: CustomSize().customWidth(context) / 25,
                         ),
                       ),
-                    ),
-                  ],
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => widget.userType == 'driver'
+                                  ? const DriverRegistrationScreen()
+                                  : const RiderRegistrationScreen(),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          'Sign Up',
+                          style: GoogleFonts.poppins(
+                            color: AppTheme.goldAccent,
+                            fontWeight: FontWeight.w600,
+                            fontSize: CustomSize().customWidth(context) / 25,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

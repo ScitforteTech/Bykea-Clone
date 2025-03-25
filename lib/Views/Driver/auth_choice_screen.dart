@@ -1,34 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/CustomSize.dart';
+import 'package:vroom_ride_app/Views/Driver/driver_registration.dart';
 import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
 import 'package:vroom_ride_app/Views/auth_screen/signUp_screen.dart';
-import 'driver_registration.dart';
 
 class AuthChoiceScreen extends StatelessWidget {
   const AuthChoiceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Get screen dimensions
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenWidth < 360;
-    final isMediumScreen = screenWidth >= 360 && screenWidth < 600;
-
-    // Calculate responsive dimensions
-    final sectionPadding =
-        isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
-    final fieldSpacing = isSmallScreen ? 12.0 : (isMediumScreen ? 16.0 : 20.0);
-    final titleFontSize = isSmallScreen ? 24.0 : (isMediumScreen ? 28.0 : 32.0);
-    final subtitleFontSize =
-        isSmallScreen ? 14.0 : (isMediumScreen ? 16.0 : 18.0);
-    final buttonHeight = isSmallScreen ? 50.0 : (isMediumScreen ? 55.0 : 60.0);
-    final buttonFontSize =
-        isSmallScreen ? 16.0 : (isMediumScreen ? 18.0 : 20.0);
-    final iconSize = isSmallScreen ? 20.0 : (isMediumScreen ? 22.0 : 24.0);
-    final logoSize = isSmallScreen ? 150.0 : (isMediumScreen ? 180.0 : 200.0);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -43,31 +24,30 @@ class AuthChoiceScreen extends StatelessWidget {
                   // Logo
                   Image.asset(
                     "assets/images/logo1.png",
-                    height: logoSize,
-                    width: logoSize,
+                    height: 200,
+                    width: 200,
                   ),
-                  SizedBox(height: fieldSpacing * 2),
+                  const SizedBox(height: 30),
 
                   // Welcome Text
                   Text(
                     'Welcome to Vroom',
                     style: GoogleFonts.poppins(
-                      fontSize: titleFontSize,
+                      fontSize: 30,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF323d4f),
                     ),
                   ),
-                  SizedBox(height: fieldSpacing),
+                  const SizedBox(height: 10),
 
                   // Subtitle
                   Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: sectionPadding * 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Text(
                       'Your safe and reliable ride service',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                        fontSize: subtitleFontSize,
+                        fontSize: 16,
                         color: Colors.grey[600],
                       ),
                     ),
@@ -80,12 +60,12 @@ class AuthChoiceScreen extends StatelessWidget {
             Expanded(
               flex: 4,
               child: Container(
-                padding: EdgeInsets.all(sectionPadding * 1.5),
+                padding: const EdgeInsets.all(30),
                 decoration: BoxDecoration(
                   color: Colors.grey[50],
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(sectionPadding * 2),
-                    topRight: Radius.circular(sectionPadding * 2),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -113,12 +93,9 @@ class AuthChoiceScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      buttonHeight: buttonHeight,
-                      buttonFontSize: buttonFontSize,
-                      iconSize: iconSize,
                     ),
 
-                    SizedBox(height: fieldSpacing),
+                    const SizedBox(height: 20),
 
                     // Sign Up Button
                     _buildButton(
@@ -135,12 +112,25 @@ class AuthChoiceScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      buttonHeight: buttonHeight,
-                      buttonFontSize: buttonFontSize,
-                      iconSize: iconSize,
                     ),
 
-                    SizedBox(height: fieldSpacing * 2),
+                    const SizedBox(height: 30),
+
+                    // Continue as Guest
+                    TextButton(
+                      onPressed: () {
+                        // Navigate to dashboard as guest
+                      },
+                      child: Text(
+                        'Continue as Guest',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -157,26 +147,21 @@ class AuthChoiceScreen extends StatelessWidget {
     required IconData icon,
     required Color color,
     required VoidCallback onTap,
-    required double buttonHeight,
-    required double buttonFontSize,
-    required double iconSize,
   }) {
     return SizedBox(
       width: double.infinity,
-      height: buttonHeight,
+      height: 60,
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(buttonHeight / 2),
+            borderRadius: BorderRadius.circular(30),
           ),
           elevation: 2,
-          padding: EdgeInsets.symmetric(
-            horizontal: buttonHeight / 2,
-          ),
         ),
+<<<<<<< HEAD
         child: Padding(
           padding:
               title == 'Login' ? EdgeInsets.only(right: 22.0) : EdgeInsets.zero,
@@ -194,6 +179,33 @@ class AuthChoiceScreen extends StatelessWidget {
               ),
             ],
           ),
+=======
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 24, color: Colors.white),
+            const SizedBox(width: 10),
+            if (title == 'Login') // Add padding only for the Login button
+              Padding(
+                padding: const EdgeInsets.only(right: 22.0),
+                child: Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            else
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+          ],
+>>>>>>> 3b3ae29 (I have made severe changes in the Authentication user screen, login page, signup page to Driver registration page, along with media queries on the driver dashboard, removed the support feature from the driver dashboard screen.)
         ),
       ),
     );

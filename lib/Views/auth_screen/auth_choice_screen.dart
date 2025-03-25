@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/theme.dart';
 import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
-import 'package:vroom_ride_app/Views/auth_screen/signUp_screen.dart';
+import 'package:vroom_ride_app/Views/Driver/driver_registration.dart';
+import 'package:vroom_ride_app/Views/Rider/rider_registration.dart';
 
 class AuthChoiceScreen extends StatelessWidget {
   const AuthChoiceScreen({super.key});
@@ -115,10 +116,11 @@ class AuthChoiceScreen extends StatelessWidget {
                         "Sign in or register as a driver",
                         Icons.directions_car,
                         () {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const loginScreen(),
+                              builder: (context) =>
+                                  const loginScreen(userType: 'driver'),
                             ),
                           );
                         },
@@ -133,10 +135,11 @@ class AuthChoiceScreen extends StatelessWidget {
                         "Sign in or register as a rider",
                         Icons.person,
                         () {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const loginScreen(),
+                              builder: (context) =>
+                                  const loginScreen(userType: 'rider'),
                             ),
                           );
                         },
@@ -170,7 +173,7 @@ class AuthChoiceScreen extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         height: buttonHeight * 2,
-        padding: EdgeInsets.symmetric(horizontal: fontSize),
+        padding: const EdgeInsets.symmetric(horizontal: 22.0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -182,7 +185,7 @@ class AuthChoiceScreen extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(fontSize),
+              padding: const EdgeInsets.all(22.0),
               decoration: BoxDecoration(
                 color: AppTheme.goldAccent.withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -193,7 +196,7 @@ class AuthChoiceScreen extends StatelessWidget {
                 size: iconSize,
               ),
             ),
-            SizedBox(width: fontSize),
+            const SizedBox(width: 22.0),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -207,6 +210,7 @@ class AuthChoiceScreen extends StatelessWidget {
                       color: const Color(0xFF323d4f),
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: GoogleFonts.poppins(
