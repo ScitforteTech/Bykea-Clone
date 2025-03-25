@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/CustomSize.dart';
 import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
-import 'package:vroom_ride_app/Views/auth_screen/signUp_screen.dart';
+import 'package:vroom_ride_app/Views/Rider/user_registration_page.dart';
 
 class AuthChoiceScreen extends StatelessWidget {
   const AuthChoiceScreen({super.key});
@@ -106,7 +106,7 @@ class AuthChoiceScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const signUpScreen(),
+                            builder: (context) => const UserRegistrationPage(),
                           ),
                         );
                       },

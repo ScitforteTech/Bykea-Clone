@@ -1,0 +1,2 @@
+C:/Projects/Bykea-Clone/android/app/.cxx/RelWithDebInfo/53733nxa/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Projects/Bykea-Clone/android/app/.cxx/RelWithDebInfo/53733nxa/armeabi-v7a/CMakeFiles/rebuild_cache.dir

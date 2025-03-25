@@ -4,6 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -13,45 +17,67 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  // Form key for validation
   final _formKey = GlobalKey<FormState>();
 
   // Controllers for text fields
-  final TextEditingController _nameController =
-      TextEditingController(text: "Abdullah Khan");
-  final TextEditingController _emailController =
-      TextEditingController(text: "abdullah.khan@example.com");
-  final TextEditingController _phoneController =
-      TextEditingController(text: "+92 300 1234567");
-  final TextEditingController _emergencyContactController =
-      TextEditingController(text: "+92 300 7654321");
-  final TextEditingController _homeAddressController =
-      TextEditingController(text: "123 Main Street, Karachi");
-  final TextEditingController _workAddressController =
-      TextEditingController(text: "456 Business Avenue, Karachi");
-
-  // Gender selection
-  String _selectedGender = "Male";
-  final List<String> _genders = ["Male", "Female", "Other"];
-
-  // Date of birth
-  DateTime _dateOfBirth = DateTime(1990, 1, 1);
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
   // Profile image
   File? _profileImage;
+  String? _profileImageUrl;
   final ImagePicker _picker = ImagePicker();
 
+  // Firebase instances
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Add Cloudinary instance
+  final cloudinary = CloudinaryPublic('dfkwjplv7', 'my_preset', cache: false);
+
   // Loading state
-  bool _isLoading = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user != null) {
+        // Get additional user data from Firestore
+        final userData =
+            await _firestore.collection('users').doc(user.uid).get();
+
+        setState(() {
+          _nameController.text = userData.data()?['name'] ?? '';
+          _emailController.text = user.email ?? '';
+          _phoneController.text = userData.data()?['phoneNumber'] ?? '';
+          _profileImageUrl = userData.data()?['profilePicture'];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Error loading user data: $e'),
+            backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _emergencyContactController.dispose();
-    _homeAddressController.dispose();
-    _workAddressController.dispose();
     super.dispose();
   }
 
@@ -174,65 +200,113 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  // Show date picker
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _dateOfBirth,
-      firstDate: DateTime(1950),
-      lastDate: DateTime.now().subtract(
-          const Duration(days: 365 * 18)), // Must be at least 18 years old
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF323d4f),
-              onPrimary: Colors.white,
-              onSurface: Color(0xFF323d4f),
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF323d4f),
-              ),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null && picked != _dateOfBirth) {
-      setState(() {
-        _dateOfBirth = picked;
-      });
-    }
-  }
-
-  // Save profile changes
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
+      try {
+        final User? user = _auth.currentUser;
+        if (user != null) {
+          // Update user data in Firestore
+          Map<String, dynamic> updateData = {
+            'name': _nameController.text,
+            'phoneNumber': _phoneController.text,
+          };
+
+          // Update email in Firebase Auth if changed
+          if (user.email != _emailController.text) {
+            await user.updateEmail(_emailController.text);
+          }
+
+          // Upload profile image to Cloudinary if changed
+          if (_profileImage != null) {
+            try {
+              CloudinaryResponse response = await cloudinary.uploadFile(
+                CloudinaryFile.fromFile(
+                  _profileImage!.path,
+                  folder: 'profile_images',
+                  resourceType: CloudinaryResourceType.Image,
+                ),
+              );
+
+              // Update the profile image URL in Firestore
+              updateData['profilePicture'] = response.secureUrl;
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error uploading image: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              setState(() {
+                _isLoading = false;
+              });
+              return;
+            }
+          }
+
+          await _firestore.collection('users').doc(user.uid).update(updateData);
+
+          // Reload user data to update the UI
+          await _loadUserData();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pop(context, true);
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
         setState(() {
           _isLoading = false;
         });
+      }
+    }
+  }
 
+  Future<void> _sendPasswordResetEmail() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null && user.email != null) {
+        await _auth.sendPasswordResetEmail(email: user.email!);
+
+        // Sign out the user
+        await _auth.signOut();
+
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Profile updated successfully!',
-              style: GoogleFonts.poppins(),
-            ),
+          const SnackBar(
+            content:
+                Text('Password reset email sent. Please check your inbox.'),
             backgroundColor: Colors.green,
           ),
         );
 
-        Navigator.pop(context);
-      });
+        // Navigate to login screen and clear navigation stack
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/login', // Make sure this route is defined in your app's routes
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error sending reset email: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -241,43 +315,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(
-          "Edit Profile",
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w300,
-            fontSize: MediaQuery.of(context).size.width / 20,
-          ),
-        ),
+        title: Text("Edit Profile",
+            style: GoogleFonts.poppins(
+                color: Colors.white, fontWeight: FontWeight.w300)),
         backgroundColor: const Color(0xFF323d4f),
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _saveProfile,
-            child: Text(
-              "Save",
-              style: GoogleFonts.poppins(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            child: Text("Save",
+                style: GoogleFonts.poppins(
+                    color: Colors.white, fontWeight: FontWeight.w500)),
           ),
         ],
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFF323d4f),
-              ),
-            )
+              child: CircularProgressIndicator(color: Color(0xFF323d4f)))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Profile Picture
                     Center(
@@ -288,9 +347,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             backgroundColor: Colors.grey[300],
                             backgroundImage: _profileImage != null
                                 ? FileImage(_profileImage!)
-                                : const AssetImage(
-                                    'assets/images/profile_pic.jpeg',
-                                  ) as ImageProvider,
+                                : (_profileImageUrl != null
+                                        ? NetworkImage(_profileImageUrl!)
+                                        : const AssetImage(
+                                            'assets/images/profile_pic.jpeg'))
+                                    as ImageProvider,
                           ),
                           Positioned(
                             bottom: 0,
@@ -303,16 +364,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFD4AF37),
                                   shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                                child: const Icon(Icons.camera_alt,
+                                    color: Colors.white, size: 20),
                               ),
                             ),
                           ),
@@ -320,9 +376,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Personal Information Section
-                    _buildSectionTitle("Personal Information"),
 
                     // Full Name
                     _buildTextField(
@@ -364,8 +417,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       hint: "Enter your phone number",
                       icon: Icons.phone,
                       keyboardType: TextInputType.phone,
-                      readOnly:
-                          true, // Usually phone number is not editable after registration
+                      readOnly: true,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Please enter your phone number";
@@ -374,203 +426,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       },
                     ),
 
-                    // Gender
-                    _buildDropdownField(
-                      label: "Gender",
-                      icon: Icons.person_outline,
-                      value: _selectedGender,
-                      items: _genders.map((gender) {
-                        return DropdownMenuItem<String>(
-                          value: gender,
-                          child: Text(gender),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _selectedGender = value;
-                          });
-                        }
-                      },
-                    ),
-
-                    // Date of Birth
-                    _buildDateField(
-                      label: "Date of Birth",
-                      icon: Icons.calendar_today,
-                      value:
-                          "${_dateOfBirth.day}/${_dateOfBirth.month}/${_dateOfBirth.year}",
-                      onTap: () => _selectDate(context),
-                    ),
-
                     const SizedBox(height: 24),
-
-                    // Contact Information Section
-                    _buildSectionTitle("Contact Information"),
-
-                    // Emergency Contact
-                    _buildTextField(
-                      controller: _emergencyContactController,
-                      label: "Emergency Contact",
-                      hint: "Enter emergency contact number",
-                      icon: Icons.emergency,
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter an emergency contact";
-                        }
-                        return null;
-                      },
-                    ),
-
-                    // Home Address
-                    _buildTextField(
-                      controller: _homeAddressController,
-                      label: "Home Address",
-                      hint: "Enter your home address",
-                      icon: Icons.home,
-                      maxLines: 1,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return "Please enter your home address";
-                        }
-                        return null;
-                      },
-                    ),
-
-                    // Work Address
-                    _buildTextField(
-                      controller: _workAddressController,
-                      label: "Work Address (Optional)",
-                      hint: "Enter your work address",
-                      icon: Icons.work,
-                      maxLines: 1,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Account Settings Section
-                    _buildSectionTitle("Account Settings"),
-
-                    // Change Password
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF323d4f).withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.lock,
-                          color: Color(0xFF323d4f),
-                        ),
-                      ),
-                      title: Text(
-                        "Change Password",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFF323d4f),
-                        ),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Color(0xFF323d4f),
-                      ),
-                      onTap: () {
-                        // Navigate to change password screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Change Password feature coming soon!',
-                              style: GoogleFonts.poppins(),
-                            ),
-                            backgroundColor: const Color(0xFF323d4f),
-                          ),
-                        );
-                      },
-                    ),
-
-                    // Delete Account
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.delete_forever,
-                          color: Colors.red,
-                        ),
-                      ),
-                      title: Text(
-                        "Delete Account",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.red,
-                        ),
-                      ),
-                      trailing: const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Colors.red,
-                      ),
-                      onTap: () {
-                        // Show delete account confirmation dialog
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text(
-                              "Delete Account",
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF323d4f),
-                              ),
-                            ),
-                            content: Text(
-                              "Are you sure you want to delete your account? This action cannot be undone.",
-                              style: GoogleFonts.poppins(),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text(
-                                  "Cancel",
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF323d4f),
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Delete Account feature coming soon!',
-                                        style: GoogleFonts.poppins(),
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                },
-                                child: Text(
-                                  "Delete",
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 40),
 
                     // Save Button
                     SizedBox(
@@ -579,7 +435,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         onPressed: _saveProfile,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF323d4f),
-                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
@@ -590,42 +445,38 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: _sendPasswordResetEmail,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          side: const BorderSide(color: Color(0xFF323d4f)),
+                        ),
+                        child: Text(
+                          "Reset Password",
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF323d4f),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-    );
-  }
-
-  // Build section title
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF323d4f),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            height: 2,
-            width: 50,
-            color: const Color(0xFFD4AF37),
-          ),
-        ],
-      ),
     );
   }
 
@@ -715,143 +566,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
             readOnly: readOnly,
             maxLines: maxLines,
             validator: validator,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Build dropdown field
-  Widget _buildDropdownField({
-    required String label,
-    required IconData icon,
-    required String value,
-    required List<DropdownMenuItem<String>> items,
-    required void Function(String?)? onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF323d4f),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.grey[300]!,
-              ),
-            ),
-            child: DropdownButtonFormField<String>(
-              value: value,
-              decoration: InputDecoration(
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Icon(
-                    icon,
-                    color: const Color(0xFF323d4f),
-                    size: 22,
-                  ),
-                ),
-                prefixIconConstraints: const BoxConstraints(
-                  minWidth: 50,
-                  minHeight: 50,
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-              ),
-              style: GoogleFonts.poppins(
-                color: const Color(0xFF323d4f),
-                fontSize: 14,
-              ),
-              icon: const Icon(
-                Icons.arrow_drop_down,
-                color: Color(0xFF323d4f),
-              ),
-              items: items,
-              onChanged: onChanged,
-              dropdownColor: Colors.white,
-              isExpanded: true,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Build date field
-  Widget _buildDateField({
-    required String label,
-    required IconData icon,
-    required String value,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF323d4f),
-            ),
-          ),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.grey[300]!,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 50,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      icon,
-                      color: const Color(0xFF323d4f),
-                      size: 22,
-                    ),
-                  ),
-                  Text(
-                    value,
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFF323d4f),
-                      fontSize: 14,
-                    ),
-                  ),
-                  const Spacer(),
-                  const Icon(
-                    Icons.arrow_drop_down,
-                    color: Color(0xFF323d4f),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),

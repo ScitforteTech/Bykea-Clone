@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "202483868529",
+    "project_id": "vr-r-9e995",
+    "storage_bucket": "vr-r-9e995.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:202483868529:android:64e7ace3888c0bbdcd4cd0",
+        "android_client_info": {
+          "package_name": "com.example.vroom_ride_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkjDMjkWS-yEryQpfyVC4oZtTb_ZaZesk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

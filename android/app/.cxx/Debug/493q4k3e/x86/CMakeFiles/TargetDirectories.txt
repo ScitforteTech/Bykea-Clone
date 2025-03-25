@@ -1,0 +1,2 @@
+C:/Projects/Bykea-Clone/android/app/.cxx/Debug/493q4k3e/x86/CMakeFiles/edit_cache.dir
+C:/Projects/Bykea-Clone/android/app/.cxx/Debug/493q4k3e/x86/CMakeFiles/rebuild_cache.dir

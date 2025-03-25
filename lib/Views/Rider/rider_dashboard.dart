@@ -12,6 +12,8 @@ import 'package:vroom_ride_app/Views/Rider/wallet.dart';
 import 'package:vroom_ride_app/Views/Rider/notification_page.dart';
 import 'package:vroom_ride_app/Views/Rider/auth_choice_screen.dart';
 import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RiderDashboard extends StatefulWidget {
   const RiderDashboard({super.key});
@@ -22,6 +24,8 @@ class RiderDashboard extends StatefulWidget {
 
 class _RiderDashboardState extends State<RiderDashboard> {
   String selectedVehicle = 'Moto';
+  String userName = '';
+  String profilePicUrl = '';
 
   final Map<String, Map<String, dynamic>> vehicleTypes = {
     'Moto': {
@@ -45,6 +49,33 @@ class _RiderDashboardState extends State<RiderDashboard> {
       'color': Colors.green.shade100,
     },
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final userData = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userData.exists) {
+          setState(() {
+            userName = userData.data()?['name'] ?? 'User';
+            profilePicUrl = userData.data()?['profilePicture'] ?? '';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -516,9 +547,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   children: [
                     CircleAvatar(
                       radius: 25,
-                      backgroundImage: const AssetImage(
-                        'assets/images/profile_pic.jpeg',
-                      ),
+                      backgroundImage: profilePicUrl.isNotEmpty
+                          ? NetworkImage(profilePicUrl)
+                          : const AssetImage('assets/images/profile_pic.jpeg')
+                              as ImageProvider,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -526,7 +558,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Abdullah',
+                            userName.isNotEmpty ? userName : 'Loading...',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -534,15 +566,20 @@ class _RiderDashboardState extends State<RiderDashboard> {
                             ),
                           ),
                           InkWell(
-                            onTap: () {
-                              // Navigate to edit profile page
+                            onTap: () async {
+                              // Close drawer first
                               Navigator.pop(context);
-                              Navigator.push(
+                              // Navigate to edit profile page and wait for result
+                              final result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const EditProfilePage(),
                                 ),
                               );
+                              // If returned with true, refresh the user data
+                              if (result == true) {
+                                await _loadUserData();
+                              }
                             },
                             child: Row(
                               children: [

@@ -4,9 +4,11 @@ import 'package:vroom_ride_app/Resources/CustomSize.dart';
 import 'package:vroom_ride_app/Resources/customComponents.dart';
 import 'package:vroom_ride_app/Views/Rider/rider_dashboard.dart';
 import 'package:vroom_ride_app/Views/auth_screen/forgotPassword.dart';
-import 'package:vroom_ride_app/Views/auth_screen/signUp_screen.dart';
+import 'package:vroom_ride_app/Views/Rider/user_registration_page.dart';
 import 'package:vroom_ride_app/components/customButton.dart';
 import 'package:vroom_ride_app/welcomePage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:vroom_ride_app/Views/Rider/auth_choice_screen.dart'; // Add this import
 
 class loginScreen extends StatefulWidget {
   const loginScreen({super.key});
@@ -22,20 +24,24 @@ class _loginScreenState extends State<loginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   bool _obscurePassword = true;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void _login() {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
 
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
-        // Check credentials
-        if (emailController.text == "abdullah@gmail.com" &&
-            passwordController.text == "test1234") {
-          // Navigate to dashboard
+      try {
+        final UserCredential userCredential =
+            await _auth.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text,
+        );
+
+        if (userCredential.user != null) {
+          // Navigate to dashboard on successful login
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
@@ -43,13 +49,30 @@ class _loginScreenState extends State<loginScreen> {
             ),
             (route) => false,
           );
-        } else {
-          setState(() {
-            _isLoading = false;
-            _errorMessage = "Invalid email or password";
-          });
         }
-      });
+      } on FirebaseAuthException catch (e) {
+        setState(() {
+          _isLoading = false;
+          switch (e.code) {
+            case 'user-not-found':
+              _errorMessage = 'No user found with this email.';
+              break;
+            case 'wrong-password':
+              _errorMessage = 'Wrong password provided.';
+              break;
+            case 'invalid-email':
+              _errorMessage = 'Invalid email address.';
+              break;
+            default:
+              _errorMessage = 'An error occurred. Please try again.';
+          }
+        });
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'An error occurred. Please try again.';
+        });
+      }
     }
   }
 
@@ -63,7 +86,11 @@ class _loginScreenState extends State<loginScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const AuthChoiceScreen()),
+              (route) => false,
+            );
           },
         ),
         title: Text(
@@ -280,7 +307,8 @@ class _loginScreenState extends State<loginScreen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const signUpScreen()));
+                                builder: (context) =>
+                                    const UserRegistrationPage()));
                       },
                       child: Container(
                         margin: EdgeInsets.only(
