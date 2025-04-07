@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/CustomSize.dart';
 import 'package:vroom_ride_app/Resources/customComponents.dart';
-import 'package:vroom_ride_app/Views/Rider/rider_dashboard.dart';
-import 'package:vroom_ride_app/Views/Rider/user_registration_page.dart';
 import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
 import 'package:vroom_ride_app/components/customButton.dart';
 import 'package:vroom_ride_app/welcomePage.dart';
@@ -40,14 +38,6 @@ class _signUpScreenState extends State<signUpScreen> {
         setState(() {
           _isLoading = false;
         });
-
-        // Navigate to user registration page
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => UserRegistrationPage(),
-          ),
-        );
       });
     }
   }

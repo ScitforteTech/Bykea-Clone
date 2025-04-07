@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class DriverEditProfileScreen extends StatefulWidget {
   const DriverEditProfileScreen({super.key});
@@ -12,13 +17,173 @@ class DriverEditProfileScreen extends StatefulWidget {
 
 class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: "Fahim Iqbal");
-  final _phoneController = TextEditingController(text: "+92 300 1234567");
-  final _emailController = TextEditingController(text: "fahim@gmail.com");
-  final _vehicleModelController = TextEditingController(text: "Honda Civic");
-  final _vehicleYearController = TextEditingController(text: "2020");
-  final _vehicleNumberController = TextEditingController(text: "ABC-123");
-  final _licenseNumberController = TextEditingController(text: "DL-123456");
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _vehicleModelController = TextEditingController();
+  final _vehicleYearController = TextEditingController();
+  final _vehicleNumberController = TextEditingController();
+  final _licenseNumberController = TextEditingController();
+  String _profileImageUrl = '';
+
+  // Add Cloudinary instance
+  final cloudinary = CloudinaryPublic('dfkwjplv7', 'my_preset', cache: false);
+
+  // Add loading state variables
+  bool _isUploadingProfile = false;
+  bool _isUploadingLicense = false;
+  bool _isUploadingRegistration = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDriverData();
+  }
+
+  Future<void> _loadDriverData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final driverDoc =
+            await _firestore.collection('drivers').doc(user.uid).get();
+
+        if (driverDoc.exists) {
+          final data = driverDoc.data()!;
+          setState(() {
+            _nameController.text = data['personalInfo']['name'] ?? '';
+            _emailController.text = data['personalInfo']['email'] ?? '';
+            _phoneController.text = data['personalInfo']['phone'] ?? '';
+            _profileImageUrl = data['personalInfo']['profileImage'] ?? '';
+
+            _vehicleModelController.text = data['vehicle']['make'] ?? '';
+            _vehicleYearController.text = data['vehicle']['model'] ?? '';
+            _vehicleNumberController.text =
+                data['vehicle']['plateNumber'] ?? '';
+            _licenseNumberController.text = data['license']['number'] ?? '';
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading driver data: $e');
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('drivers').doc(user.uid).update({
+          'personalInfo': {
+            'name': _nameController.text,
+            'email': _emailController.text,
+            'phone': _phoneController.text,
+            'profileImage': _profileImageUrl,
+          },
+          'vehicle': {
+            'make': _vehicleModelController.text,
+            'model': _vehicleYearController.text,
+            'plateNumber': _vehicleNumberController.text,
+          },
+          'license': {
+            'number': _licenseNumberController.text,
+          },
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Profile updated successfully"),
+              backgroundColor: Color(0xFFD4AF37),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error updating profile: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadImage(String type) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+      if (image == null) return;
+
+      switch (type) {
+        case 'profile':
+          setState(() => _isUploadingProfile = true);
+          break;
+        case 'license':
+          setState(() => _isUploadingLicense = true);
+          break;
+        case 'registration':
+          setState(() => _isUploadingRegistration = true);
+          break;
+      }
+
+      final response = await cloudinary.uploadFile(
+        CloudinaryFile.fromFile(
+          image.path,
+          folder: 'driver_${type}s',
+        ),
+      );
+
+      final user = _auth.currentUser;
+      if (user != null) {
+        switch (type) {
+          case 'profile':
+            await _firestore.collection('drivers').doc(user.uid).update({
+              'personalInfo.profileImage': response.secureUrl,
+            });
+            setState(() => _profileImageUrl = response.secureUrl);
+            break;
+          case 'license':
+            await _firestore.collection('drivers').doc(user.uid).update({
+              'license.image': response.secureUrl,
+            });
+            break;
+          case 'registration':
+            await _firestore.collection('drivers').doc(user.uid).update({
+              'vehicle.registrationImage': response.secureUrl,
+            });
+            break;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$type uploaded successfully')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading $type: $e')),
+      );
+    } finally {
+      switch (type) {
+        case 'profile':
+          setState(() => _isUploadingProfile = false);
+          break;
+        case 'license':
+          setState(() => _isUploadingLicense = false);
+          break;
+        case 'registration':
+          setState(() => _isUploadingRegistration = false);
+          break;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -30,6 +195,15 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
     _vehicleNumberController.dispose();
     _licenseNumberController.dispose();
     super.dispose();
+  }
+
+  String _capitalizeInitials(String text) {
+    if (text.isEmpty) return text;
+    return text
+        .split(' ')
+        .map((word) =>
+            word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
+        .join(' ');
   }
 
   @override
@@ -96,9 +270,12 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                               color: Colors.white,
                               width: 3,
                             ),
-                            image: const DecorationImage(
-                              image: AssetImage(
-                                  "assets/images/default_profile.png"),
+                            image: DecorationImage(
+                              image: _profileImageUrl.isNotEmpty
+                                  ? NetworkImage(_profileImageUrl)
+                                  : const AssetImage(
+                                          "assets/images/default_profile.png")
+                                      as ImageProvider,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -112,13 +289,26 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                               color: Color(0xFFD4AF37),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: isSmallScreen
-                                  ? 16
-                                  : (isMediumScreen ? 18 : 20),
-                            ),
+                            child: _isUploadingProfile
+                                ? SizedBox(
+                                    width: isSmallScreen ? 16 : 20,
+                                    height: isSmallScreen ? 16 : 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  )
+                                : IconButton(
+                                    icon: Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white,
+                                      size: isSmallScreen
+                                          ? 16
+                                          : (isMediumScreen ? 18 : 20),
+                                    ),
+                                    onPressed: () => _uploadImage('profile'),
+                                  ),
                           ),
                         ),
                       ],
@@ -134,7 +324,6 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                   ],
                 ),
               ),
-
               // Personal Information Section
               Padding(
                 padding: EdgeInsets.all(sectionPadding),
@@ -156,6 +345,16 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                       icon: Icons.person_outline,
                       iconSize: iconSize,
                       fontSize: textFontSize,
+                      onChanged: (value) {
+                        final capitalizedText = _capitalizeInitials(value);
+                        if (value != capitalizedText) {
+                          _nameController.value = TextEditingValue(
+                            text: capitalizedText,
+                            selection: TextSelection.collapsed(
+                                offset: capitalizedText.length),
+                          );
+                        }
+                      },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return "Please enter your name";
@@ -199,7 +398,6 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                   ],
                 ),
               ),
-
               // Vehicle Information Section
               Padding(
                 padding: EdgeInsets.all(sectionPadding),
@@ -217,7 +415,7 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                     SizedBox(height: fieldSpacing),
                     _buildTextField(
                       controller: _vehicleModelController,
-                      label: "Vehicle Model",
+                      label: "Vehicle Make", // Changed from "Vehicle Model"
                       icon: Icons.directions_car_outlined,
                       iconSize: iconSize,
                       fontSize: textFontSize,
@@ -231,7 +429,7 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                     SizedBox(height: fieldSpacing),
                     _buildTextField(
                       controller: _vehicleYearController,
-                      label: "Vehicle Year",
+                      label: "Vehicle Model", // Changed from "Vehicle Year"
                       icon: Icons.calendar_today_outlined,
                       iconSize: iconSize,
                       fontSize: textFontSize,
@@ -260,7 +458,6 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                   ],
                 ),
               ),
-
               // Documents Section
               Padding(
                 padding: EdgeInsets.all(sectionPadding),
@@ -297,6 +494,8 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                       iconSize: iconSize,
                       fontSize: textFontSize,
                       titleFontSize: titleFontSize,
+                      isLoading: _isUploadingLicense,
+                      onUpload: () => _uploadImage('license'),
                     ),
                     SizedBox(height: fieldSpacing),
                     _buildDocumentUploadCard(
@@ -306,6 +505,8 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                       iconSize: iconSize,
                       fontSize: textFontSize,
                       titleFontSize: titleFontSize,
+                      isLoading: _isUploadingRegistration,
+                      onUpload: () => _uploadImage('registration'),
                     ),
                     SizedBox(height: fieldSpacing),
                     _buildDocumentUploadCard(
@@ -319,7 +520,6 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                   ],
                 ),
               ),
-
               // Save Button
               Padding(
                 padding: EdgeInsets.all(sectionPadding),
@@ -327,17 +527,7 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
                   width: double.infinity,
                   height: isSmallScreen ? 45 : (isMediumScreen ? 48 : 50),
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Save profile changes
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Profile updated successfully"),
-                            backgroundColor: Color(0xFFD4AF37),
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: _saveChanges,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryBlue,
                       shape: RoundedRectangleBorder(
@@ -369,6 +559,7 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
     required double iconSize,
     required double fontSize,
     String? Function(String?)? validator,
+    void Function(String)? onChanged,
     TextInputType? keyboardType,
   }) {
     return Container(
@@ -388,6 +579,7 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
         controller: controller,
         keyboardType: keyboardType,
         validator: validator,
+        onChanged: onChanged,
         style: GoogleFonts.poppins(
           fontSize: fontSize,
           color: const Color(0xFF323d4f),
@@ -425,6 +617,8 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
     required double iconSize,
     required double fontSize,
     required double titleFontSize,
+    bool isLoading = false,
+    VoidCallback? onUpload,
   }) {
     return Container(
       padding: EdgeInsets.all(fontSize * 1.2),
@@ -478,14 +672,21 @@ class _DriverEditProfileScreenState extends State<DriverEditProfileScreen> {
             ),
           ),
           IconButton(
-            onPressed: () {
-              // Add document upload functionality
-            },
-            icon: Icon(
-              Icons.arrow_forward_ios,
-              size: fontSize,
-              color: Colors.grey,
-            ),
+            onPressed: isLoading ? null : onUpload,
+            icon: isLoading
+                ? SizedBox(
+                    width: fontSize,
+                    height: fontSize,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                    ),
+                  )
+                : Icon(
+                    Icons.arrow_forward_ios,
+                    size: fontSize,
+                    color: Colors.grey,
+                  ),
           ),
         ],
       ),

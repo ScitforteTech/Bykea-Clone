@@ -6,10 +6,11 @@ import 'package:vroom_ride_app/Views/Driver/driver_dashboard.dart';
 import 'package:vroom_ride_app/Views/auth_screen/forgotPassword.dart';
 import 'package:vroom_ride_app/Views/auth_screen/signUp_screen.dart';
 import 'package:vroom_ride_app/Views/Driver/driver_registration.dart';
-import 'package:vroom_ride_app/Views/Rider/rider_registration.dart';
 import 'package:vroom_ride_app/components/customButton.dart';
 import 'package:vroom_ride_app/welcomePage.dart';
 import 'package:vroom_ride_app/Resources/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class loginScreen extends StatefulWidget {
   final String userType;
@@ -27,64 +28,71 @@ class _loginScreenState extends State<loginScreen> {
   String? _errorMessage;
   bool _obscurePassword = true;
 
-  void _login() {
-    // Debug logging for form state
-    debugPrint('Form is valid: ${_formKey.currentState!.validate()}');
-    debugPrint('Email field value: ${emailController.text}');
-    debugPrint('Password field value: ${passwordController.text}');
+  // Add Firebase Auth instance
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
         _errorMessage = null;
       });
 
-      // Debug logging for credentials
-      debugPrint('Attempting login with:');
-      debugPrint('Email (trimmed): ${emailController.text.trim()}');
-      debugPrint('Password (trimmed): ${passwordController.text.trim()}');
-      debugPrint('Expected email: fahim@gmail.com');
-      debugPrint('Expected password: 1234');
+      try {
+        // Attempt to sign in with Firebase
+        final UserCredential userCredential =
+            await _auth.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
 
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
-        // Check credentials with more detailed error reporting
-        if (emailController.text.trim().toLowerCase() != "fahim@gmail.com") {
-          debugPrint('Login failed: Email mismatch');
-          setState(() {
-            _isLoading = false;
-            _errorMessage = "Invalid email address";
-          });
-        } else if (passwordController.text.trim() != "1234") {
-          debugPrint('Login failed: Password mismatch');
-          setState(() {
-            _isLoading = false;
-            _errorMessage = "Invalid password";
-          });
-        } else {
-          debugPrint('Login successful, navigating to dashboard');
-          // Navigate to dashboard
+        if (userCredential.user != null) {
+          // Check if user is a driver in Firestore
+          final driverDoc = await FirebaseFirestore.instance
+              .collection('drivers')
+              .doc(userCredential.user!.uid)
+              .get();
+
+          if (!driverDoc.exists) {
+            throw Exception('No driver account found');
+          }
+
+          if (!mounted) return;
+          // Navigate to dashboard on success
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(
-              builder: (context) => const DriverDashboard(),
-            ),
+            MaterialPageRoute(builder: (context) => const DriverDashboard()),
             (route) => false,
           );
         }
-      });
-    } else {
-      debugPrint('Form validation failed');
-      // Show which field failed validation
-      if (emailController.text.isEmpty) {
+      } on FirebaseAuthException catch (e) {
         setState(() {
-          _errorMessage = "Please enter your email";
+          _isLoading = false;
+          _errorMessage = _getFirebaseErrorMessage(e.code);
         });
-      } else if (passwordController.text.isEmpty) {
+      } catch (e) {
         setState(() {
-          _errorMessage = "Please enter your password";
+          _isLoading = false;
+          _errorMessage = e.toString();
         });
       }
+    }
+  }
+
+  String _getFirebaseErrorMessage(String code) {
+    switch (code) {
+      case 'user-not-found':
+        return 'No user found with this email';
+      case 'wrong-password':
+        return 'Invalid password';
+      case 'invalid-email':
+        return 'Invalid email address';
+      case 'user-disabled':
+        return 'This account has been disabled';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later';
+      default:
+        return 'An error occurred. Please try again';
     }
   }
 
@@ -324,9 +332,8 @@ class _loginScreenState extends State<loginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => widget.userType == 'driver'
-                                  ? const DriverRegistrationScreen()
-                                  : const RiderRegistrationScreen(),
+                              builder: (context) =>
+                                  const DriverRegistrationScreen(),
                             ),
                           );
                         },

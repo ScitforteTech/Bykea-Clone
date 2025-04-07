@@ -1,0 +1,2 @@
+C:/Vroom_Captain_Backend/Bykea-Clone/android/app/.cxx/RelWithDebInfo/1n4g254n/x86_64/CMakeFiles/edit_cache.dir
+C:/Vroom_Captain_Backend/Bykea-Clone/android/app/.cxx/RelWithDebInfo/1n4g254n/x86_64/CMakeFiles/rebuild_cache.dir

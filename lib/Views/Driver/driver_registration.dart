@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:vroom_ride_app/Resources/theme.dart';
 import 'package:vroom_ride_app/Views/Driver/driver_dashboard.dart';
+import 'package:cloudinary_public/cloudinary_public.dart';
 
 class DriverRegistrationScreen extends StatefulWidget {
   const DriverRegistrationScreen({super.key});
@@ -15,6 +18,9 @@ class DriverRegistrationScreen extends StatefulWidget {
 }
 
 class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
+  // Add Cloudinary instance
+  final cloudinary = CloudinaryPublic('dfkwjplv7', 'my_preset', cache: false);
+
   final _formKey = GlobalKey<FormState>();
   File? _profileImage;
   File? _licenseImage;
@@ -43,6 +49,61 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  // Add Firebase instances
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Add CNIC formatter
+    _cnicController.addListener(() {
+      String text = _cnicController.text.replaceAll('-', '');
+      if (text.length > 13) {
+        text = text.substring(0, 13);
+      }
+
+      String formattedText = '';
+      for (var i = 0; i < text.length; i++) {
+        if (i == 5 || i == 12) {
+          formattedText += '-';
+        }
+        formattedText += text[i];
+      }
+
+      if (formattedText != _cnicController.text) {
+        _cnicController.value = TextEditingValue(
+          text: formattedText,
+          selection: TextSelection.collapsed(offset: formattedText.length),
+        );
+      }
+    });
+
+    // Existing phone formatter
+    _phoneController.addListener(() {
+      String text = _phoneController.text.replaceAll('-', '');
+      if (text.length > 11) {
+        text = text.substring(0, 11);
+      }
+
+      String formattedText = '';
+      for (var i = 0; i < text.length; i++) {
+        if (i == 4) {
+          formattedText += '-';
+        }
+        formattedText += text[i];
+      }
+
+      if (formattedText != _phoneController.text) {
+        _phoneController.value = TextEditingValue(
+          text: formattedText,
+          selection: TextSelection.collapsed(offset: formattedText.length),
+        );
+      }
+    });
+  }
 
   Future<void> _pickImage(ImageSource source, String type) async {
     try {
@@ -254,6 +315,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                 label: 'Full Name',
                 icon: Icons.person_outline,
                 controller: _nameController,
+                textCapitalization: TextCapitalization.words,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Please enter your name' : null,
               ),
@@ -263,16 +325,17 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                 icon: Icons.credit_card,
                 controller: _cnicController,
                 keyboardType: TextInputType.number,
-                maxLength: 13,
+                maxLength: 15, // 13 digits + 2 hyphens
                 validator: (value) {
                   if (value?.isEmpty ?? true) {
                     return 'Please enter your CNIC';
                   }
-                  if (value!.length != 13) {
+                  String digitsOnly = value!.replaceAll('-', '');
+                  if (digitsOnly.length != 13) {
                     return 'CNIC must be 13 digits';
                   }
-                  if (!RegExp(r'^[0-9]{13}$').hasMatch(value)) {
-                    return 'CNIC can only contain numbers';
+                  if (!RegExp(r'^\d{5}-\d{7}-\d{1}$').hasMatch(value)) {
+                    return 'CNIC format should be: 42000-9072425-9';
                   }
                   return null;
                 },
@@ -292,9 +355,20 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                 icon: Icons.phone_outlined,
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                validator: (value) => value?.isEmpty ?? true
-                    ? 'Please enter your phone number'
-                    : null,
+                maxLength: 12, // 11 digits + 1 hyphen
+                validator: (value) {
+                  if (value?.isEmpty ?? true) {
+                    return 'Please enter your phone number';
+                  }
+                  String digitsOnly = value!.replaceAll('-', '');
+                  if (digitsOnly.length != 11) {
+                    return 'Phone number must be 11 digits';
+                  }
+                  if (!RegExp(r'^[0-9-]+$').hasMatch(value)) {
+                    return 'Phone number can only contain numbers';
+                  }
+                  return null;
+                },
               ),
             ],
           ),
@@ -342,34 +416,97 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
 
   Widget _buildVehicleDetailsStep() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DropdownButtonFormField<String>(
-          value: _selectedVehicleType,
-          decoration: InputDecoration(
-            labelText: 'Vehicle Type',
-            labelStyle: GoogleFonts.poppins(),
-            prefixIcon: Icon(Icons.directions_car_outlined,
-                color: AppTheme.primaryBlue),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+        Text(
+          'Select Vehicle Type',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.primaryBlue,
           ),
-          items: _vehicleTypes
-              .map((type) => DropdownMenuItem(
-                    value: type,
-                    child: Text(
-                      type,
-                      style: GoogleFonts.poppins(),
-                    ),
-                  ))
-              .toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedVehicleType = value!;
-            });
-          },
         ),
         const SizedBox(height: 16),
+        GridView.count(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          crossAxisCount: 3,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.85,
+          children: _vehicleTypes.map((type) {
+            bool isSelected = type == _selectedVehicleType;
+            return InkWell(
+              onTap: () => setState(() => _selectedVehicleType = type),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppTheme.primaryBlue.withOpacity(0.1)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color:
+                        isSelected ? AppTheme.primaryBlue : Colors.grey[300]!,
+                    width: isSelected ? 2 : 1,
+                  ),
+                  boxShadow: [
+                    if (isSelected)
+                      BoxShadow(
+                        color: AppTheme.primaryBlue.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      height: 65, // Fixed container height for all icons
+                      alignment:
+                          Alignment.center, // Center the icons vertically
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: type == 'Bike'
+                          ? Image.asset(
+                              'assets/images/70.png',
+                              height: 32,
+                              width: 32,
+                            )
+                          : type == 'Car'
+                              ? Image.asset(
+                                  'assets/images/sedan.png',
+                                  height: 45,
+                                  width: 45,
+                                )
+                              : Image.asset(
+                                  'assets/images/rickshaw.png',
+                                  height: 40,
+                                  width: 40,
+                                ),
+                    ),
+                    const SizedBox(
+                        height: 8), // Consistent spacing for all types
+                    Text(
+                      type,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.5,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected
+                            ? AppTheme.primaryBlue
+                            : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 24),
         _buildTextField(
           label: 'Vehicle Make',
           icon: Icons.business,
@@ -473,28 +610,124 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
     );
   }
 
-  void _registerDriver() {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true;
+  // Add upload method
+  Future<String> _uploadImageToCloudinary(File image, String folder) async {
+    try {
+      CloudinaryResponse response = await cloudinary.uploadFile(
+        CloudinaryFile.fromFile(
+          image.path,
+          folder: folder,
+          resourceType: CloudinaryResourceType.Image,
+        ),
+      );
+      return response.secureUrl;
+    } catch (e) {
+      throw Exception('Failed to upload image: $e');
+    }
+  }
+
+  Future<void> registerDriver() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    try {
+      setState(() => _isLoading = true);
+
+      // Validate all required fields and images
+      if (_profileImage == null ||
+          _licenseImage == null ||
+          _vehicleImage == null ||
+          _nameController.text.isEmpty) {
+        throw Exception(
+            'Please fill in all required fields and upload all images');
+      }
+
+      // Upload images to Cloudinary first
+      final String profileImageUrl =
+          await _uploadImageToCloudinary(_profileImage!, 'driver_profiles');
+      final String licenseImageUrl =
+          await _uploadImageToCloudinary(_licenseImage!, 'driver_licenses');
+      final String vehicleImageUrl =
+          await _uploadImageToCloudinary(_vehicleImage!, 'driver_vehicles');
+
+      // Create user account
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Update display name
+      await userCredential.user!.updateDisplayName(_nameController.text.trim());
+
+      // Save driver data to Firestore with image URLs
+      await _firestore.collection('drivers').doc(userCredential.user!.uid).set({
+        'personalInfo': {
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'cnic': _cnicController.text.trim(),
+          'profileImage': profileImageUrl,
+          'createdAt': FieldValue.serverTimestamp(),
+        },
+        'vehicle': {
+          'type': _selectedVehicleType,
+          'make': _vehicleMakeController.text.trim(),
+          'model': _vehicleModelController.text.trim(),
+          'color': _vehicleColorController.text.trim(),
+          'plateNumber': _vehicleNumberController.text.trim().toUpperCase(),
+          'vehicleImage': vehicleImageUrl,
+        },
+        'license': {
+          'number': _licenseController.text.trim(),
+          'image': licenseImageUrl,
+        },
+        'status': {
+          'isVerified': false,
+          'isOnline': false,
+          'rating': 0.0,
+          'earnings': 0.0,
+          'trips': 0,
+        }
       });
 
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          _isLoading = false;
-        });
-
-        // Navigate to dashboard
+      if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (context) => const DriverDashboard(),
-          ),
+          MaterialPageRoute(builder: (context) => const DriverDashboard()),
           (route) => false,
         );
-      });
+      }
+    } on FirebaseAuthException catch (e) {
+      _showErrorSnackBar(_getFirebaseErrorMessage(e.code));
+    } catch (e) {
+      _showErrorSnackBar('Registration failed: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  String _getFirebaseErrorMessage(String code) {
+    switch (code) {
+      case 'email-already-in-use':
+        return 'This email is already registered';
+      case 'invalid-email':
+        return 'Invalid email address';
+      case 'operation-not-allowed':
+        return 'Email/password accounts are not enabled';
+      case 'weak-password':
+        return 'Please enter a stronger password';
+      default:
+        return 'An error occurred during registration';
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
@@ -601,6 +834,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                         label: 'Full Name',
                         icon: Icons.person_outline,
                         controller: _nameController,
+                        textCapitalization: TextCapitalization.words,
                         validator: (value) => value?.isEmpty ?? true
                             ? 'Please enter your name'
                             : null,
@@ -611,16 +845,17 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                         icon: Icons.credit_card,
                         controller: _cnicController,
                         keyboardType: TextInputType.number,
-                        maxLength: 13,
+                        maxLength: 15,
                         validator: (value) {
                           if (value?.isEmpty ?? true) {
                             return 'Please enter your CNIC';
                           }
-                          if (value!.length != 13) {
+                          String digitsOnly = value!.replaceAll('-', '');
+                          if (digitsOnly.length != 13) {
                             return 'CNIC must be 13 digits';
                           }
-                          if (!RegExp(r'^[0-9]{13}$').hasMatch(value)) {
-                            return 'CNIC can only contain numbers';
+                          if (!RegExp(r'^\d{5}-\d{7}-\d{1}$').hasMatch(value)) {
+                            return 'CNIC format should be: 42000-9072425-9';
                           }
                           return null;
                         },
@@ -641,9 +876,20 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                         icon: Icons.phone_outlined,
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        validator: (value) => value?.isEmpty ?? true
-                            ? 'Please enter your phone number'
-                            : null,
+                        maxLength: 12, // 11 digits + 1 hyphen
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) {
+                            return 'Please enter your phone number';
+                          }
+                          String digitsOnly = value!.replaceAll('-', '');
+                          if (digitsOnly.length != 11) {
+                            return 'Phone number must be 11 digits';
+                          }
+                          if (!RegExp(r'^[0-9-]+$').hasMatch(value)) {
+                            return 'Phone number can only contain numbers';
+                          }
+                          return null;
+                        },
                       ),
                     ],
                   ),
@@ -693,30 +939,101 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      DropdownButtonFormField<String>(
-                        value: _selectedVehicleType,
-                        decoration: InputDecoration(
-                          labelText: 'Vehicle Type',
-                          labelStyle: GoogleFonts.poppins(),
-                          prefixIcon: Icon(Icons.directions_car_outlined,
-                              color: AppTheme.primaryBlue),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                      Text(
+                        'Select Vehicle Type',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryBlue,
                         ),
-                        items: _vehicleTypes
-                            .map((type) => DropdownMenuItem(
-                                  value: type,
-                                  child: Text(
-                                    type,
-                                    style: GoogleFonts.poppins(),
-                                  ),
-                                ))
-                            .toList(),
-                        onChanged: (value) =>
-                            setState(() => _selectedVehicleType = value!),
                       ),
                       const SizedBox(height: 16),
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 0.85,
+                        children: _vehicleTypes.map((type) {
+                          bool isSelected = type == _selectedVehicleType;
+                          return InkWell(
+                            onTap: () =>
+                                setState(() => _selectedVehicleType = type),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppTheme.primaryBlue.withOpacity(0.1)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? AppTheme.primaryBlue
+                                      : Colors.grey[300]!,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                                boxShadow: [
+                                  if (isSelected)
+                                    BoxShadow(
+                                      color:
+                                          AppTheme.primaryBlue.withOpacity(0.2),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 4),
+                                    ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(12),
+                                    height:
+                                        65, // Fixed container height for all icons
+                                    alignment: Alignment
+                                        .center, // Center the icons vertically
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: type == 'Bike'
+                                        ? Image.asset(
+                                            'assets/images/70.png',
+                                            height: 32,
+                                            width: 32,
+                                          )
+                                        : type == 'Car'
+                                            ? Image.asset(
+                                                'assets/images/sedan.png',
+                                                height: 45,
+                                                width: 45,
+                                              )
+                                            : Image.asset(
+                                                'assets/images/rickshaw.png',
+                                                height: 40,
+                                                width: 40,
+                                              ),
+                                  ),
+                                  const SizedBox(
+                                      height:
+                                          8), // Consistent spacing for all types
+                                  Text(
+                                    type,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12.5,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: isSelected
+                                          ? AppTheme.primaryBlue
+                                          : Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 24),
                       _buildTextField(
                         label: 'Vehicle Make',
                         icon: Icons.business,
@@ -796,7 +1113,16 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _registerDriver,
+                      onPressed: _isLoading
+                          ? null
+                          : () async {
+                              try {
+                                await registerDriver();
+                              } catch (e, stackTrace) {
+                                print('Error: $e');
+                                print('StackTrace: $stackTrace');
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF323d4f),
                         foregroundColor: Colors.white,
@@ -915,6 +1241,8 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
     VoidCallback? onVisibilityToggle,
     int? maxLength,
     TextCapitalization textCapitalization = TextCapitalization.none,
+    bool? enabled,
+    VoidCallback? onTap,
   }) {
     // Get screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
@@ -939,7 +1267,12 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
       keyboardType: keyboardType,
       maxLength: maxLength,
       textCapitalization: textCapitalization,
-      style: GoogleFonts.poppins(fontSize: inputFontSize),
+      enabled: enabled,
+      onTap: onTap,
+      style: GoogleFonts.poppins(
+        fontSize: inputFontSize,
+        color: enabled == false ? Colors.grey[600] : null,
+      ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: GoogleFonts.poppins(fontSize: labelFontSize),

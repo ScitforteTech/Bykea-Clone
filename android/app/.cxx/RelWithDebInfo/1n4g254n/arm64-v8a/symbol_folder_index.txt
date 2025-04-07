@@ -1,0 +1,1 @@
+C:\Vroom_Captain_Backend\Bykea-Clone\build\app\intermediates\cxx\RelWithDebInfo\1n4g254n\obj\arm64-v8a

@@ -161,51 +161,27 @@ class AuthChoiceScreen extends StatelessWidget {
           ),
           elevation: 2,
         ),
-<<<<<<< HEAD
-        child: Padding(
-          padding:
-              title == 'Login' ? EdgeInsets.only(right: 22.0) : EdgeInsets.zero,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: iconSize, color: Colors.white),
-              SizedBox(width: buttonHeight / 4),
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: buttonFontSize,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-=======
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 24, color: Colors.white),
-            const SizedBox(width: 10),
-            if (title == 'Login') // Add padding only for the Login button
-              Padding(
-                padding: const EdgeInsets.only(right: 22.0),
-                child: Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+            Padding(
+              padding: EdgeInsets.only(right: title == 'Login' ? 20 : 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 24, color: Colors.white),
+                  const SizedBox(width: 10),
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              )
-            else
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                ],
               ),
+            ),
           ],
->>>>>>> 3b3ae29 (I have made severe changes in the Authentication user screen, login page, signup page to Driver registration page, along with media queries on the driver dashboard, removed the support feature from the driver dashboard screen.)
         ),
       ),
     );

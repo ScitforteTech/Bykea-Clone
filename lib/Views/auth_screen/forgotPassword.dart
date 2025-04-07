@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:vroom_ride_app/Views/Rider/otp_verification.dart';
 import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
 
 class ResetPassword extends StatefulWidget {
@@ -29,36 +28,7 @@ class _ResetPasswordState extends State<ResetPassword> {
           _isLoading = false;
         });
 
-        // Navigate to OTP verification screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OtpVerificationScreen(
-              email: _emailController.text,
-              isFromForgotPassword: true,
-            ),
-          ),
-        ).then((success) {
-          if (success == true) {
-            // Show success message and navigate back to login
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Password reset successful. Please login with your new password.',
-                  style: GoogleFonts.poppins(),
-                ),
-                backgroundColor: Colors.green,
-              ),
-            );
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const loginScreen(),
-              ),
-            );
-          }
-        });
+        // Optionally, you can add any other logic here if needed
       });
     }
   }

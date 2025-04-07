@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/theme.dart';
 import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
 import 'package:vroom_ride_app/Views/Driver/driver_registration.dart';
-import 'package:vroom_ride_app/Views/Rider/rider_registration.dart';
 
 class AuthChoiceScreen extends StatelessWidget {
   const AuthChoiceScreen({super.key});

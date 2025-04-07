@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:vroom_ride_app/Resources/CustomSize.dart';
 import 'package:vroom_ride_app/Views/auth_screen/login_screen.dart';
 import 'package:vroom_ride_app/Views/auth_screen/phoneRegistration.dart';
-import 'package:vroom_ride_app/Views/Rider/user_registration_page.dart';
 import 'package:vroom_ride_app/components/customButton.dart';
+import 'package:vroom_ride_app/Views/Driver/driver_registration.dart';
 
 class MyWelcomeView extends StatelessWidget {
   const MyWelcomeView({super.key});
@@ -92,7 +92,7 @@ class MyWelcomeView extends StatelessWidget {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const UserRegistrationPage()));
+                      builder: (context) => const DriverRegistrationScreen()));
             },
           )
         ],
